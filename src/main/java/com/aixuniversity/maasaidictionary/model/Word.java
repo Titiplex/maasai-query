@@ -6,8 +6,8 @@ import java.util.Objects;
  * Représente un mot (par exemple un mot en Maa).
  */
 public class Word {
-    private String text;         // Le mot lui-même (ex: "enkima")
-    private String partOfSpeech; // Optionnel, catégorie grammaticale (ex: "n." pour nom)
+    private String text;         // Le mot lui-même (ex : "enkima")
+    private String partOfSpeech; // Optionnel, catégorie grammaticale (ex : "n." pour nom)
 
     public Word() {
     }
@@ -39,10 +39,7 @@ public class Word {
 
     @Override
     public String toString() {
-        return "Word{" +
-                "text='" + text + '\'' +
-                ", partOfSpeech='" + partOfSpeech + '\'' +
-                '}';
+        return text + "(" + partOfSpeech + ")";
     }
 
     @Override

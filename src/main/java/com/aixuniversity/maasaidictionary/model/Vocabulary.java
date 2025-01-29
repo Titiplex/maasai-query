@@ -44,10 +44,14 @@ public class Vocabulary {
 
     @Override
     public String toString() {
-        return "Vocabulary{" +
-                "maaWord=" + maaWord +
-                ", meanings=" + meanings +
-                '}';
+        StringBuilder string = new StringBuilder("Vocabulary {" +
+                "maaWord=" + maaWord.toString() +
+                "\nmeanings=");
+        for (Meaning meaning : meanings) {
+            string.append(meaning.toString());
+        }
+        string.append("\n}");
+        return string.toString();
     }
 
     @Override

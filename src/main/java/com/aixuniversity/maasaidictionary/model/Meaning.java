@@ -42,10 +42,7 @@ public class Meaning {
 
     @Override
     public String toString() {
-        return "Meaning{" +
-                "definition='" + definition + '\'' +
-                ", language='" + language + '\'' +
-                '}';
+        return definition + "\t(" + language + ")\n";
     }
 
     @Override
