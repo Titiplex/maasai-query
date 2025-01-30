@@ -12,9 +12,9 @@ import java.util.*;
 /**
  * Classe HtmlParser permettant de récupérer le vocabulaire
  * en parcourant récursivement tous les liens HTM/HTML
- * à partir d'une URL de base (ex. <a href="https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/">...</a>).
+ * à partir d'une URL de base (ex :<a href="https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/"></a>).
  */
-public class HtmlParser {
+public abstract class HtmlParser {
 
     /**
      * Explore toutes les pages liées (en .htm / .html) à partir de l'URL de base,
