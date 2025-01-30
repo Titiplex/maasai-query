@@ -1,6 +1,5 @@
 package main.java.com.aixuniversity.maasaidictionary.parser;
 
-import main.java.com.aixuniversity.maasaidictionary.model.Meaning;
 import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
 import main.java.com.aixuniversity.maasaidictionary.model.Word;
 import org.jsoup.Jsoup;
@@ -23,9 +22,8 @@ public class HtmlParser {
      *
      * @param startUrl L'URL de base, par ex. "<a href="https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/">...</a>"
      * @return Une liste de Vocabulary (objet métier) contenant l'ensemble du lexique trouvé
-     * @throws Exception En cas de problème réseau ou parsing
      */
-    public static List<Vocabulary> parseAll(String startUrl) throws Exception {
+    public static List<Vocabulary> parseAll(String startUrl) {
         // Ensemble pour éviter de revisiter plusieurs fois la même page
         Set<String> visited = new HashSet<>();
         // File d’attente (BFS)
@@ -37,6 +35,7 @@ public class HtmlParser {
 
         while (!toVisit.isEmpty()) {
             String currentUrl = toVisit.poll();
+            System.out.println("Current Url : " + currentUrl);
             // Si déjà visité, on saute
             if (visited.contains(currentUrl)) {
                 continue;
@@ -45,7 +44,12 @@ public class HtmlParser {
 
             try {
                 // Récupération du HTML
-                Document doc = Jsoup.connect(currentUrl).get();
+                Document doc = Jsoup.connect(currentUrl)
+                        // Par exemple 60 secondes (60000 ms)
+                        .timeout(60000)
+                        // Pour autoriser une taille illimitée de la réponse (par défaut ~2Mo)
+                        .maxBodySize(0)
+                        .get();
 
                 // 1) Parser la page pour extraire du vocabulaire
                 // (Si la page courante en contient)
@@ -63,7 +67,8 @@ public class HtmlParser {
                     // Éviter la page main.htm, etc.
                     if (absUrl.startsWith(startUrl)
                             && (absUrl.endsWith(".htm") || absUrl.endsWith(".html"))
-                            && !absUrl.contains("main.htm")) {
+                            && !absUrl.contains("main.htm")
+                            && !absUrl.contains("01.htm")) {
                         toVisit.add(absUrl);
                     }
                 }
@@ -79,8 +84,7 @@ public class HtmlParser {
 
     /**
      * Parse le contenu d'un document HTML (Document Jsoup) pour en extraire les entrées lexicales.
-     * Ici, on part du principe que chaque entrée est dans un <p> ou similaire,
-     * et que le format est "Mot Maa : Traduction".
+     * Ici, on part du principe que chaque entrée est dans un <p> ou similaire.
      *
      * @param doc Le Document (déjà téléchargé par Jsoup)
      * @return Liste de Vocabulary correspondant au contenu de la page
@@ -90,32 +94,15 @@ public class HtmlParser {
 
         // Exemple : on sélectionne tous les paragraphes
         // À vous d’adapter selon la structure HTML réelle
-        Elements entries = doc.select("p");
+        Elements entries = doc.select(".lpLexEntryPara"); // :has(.lpLexEntryPara)
 
         for (Element entry : entries) {
-            String rawText = entry.text().trim();
-            if (rawText.isEmpty()) {
-                continue;
-            }
+            Element name = entry.selectFirst(".lpLexEntryName");
+            Element partOfSpeech = entry.selectFirst(".lpPartOfSpeech");
 
-            // Hypothèse : "Mot en Maa : Traduction"
-            String[] parts = rawText.split(":");
-            if (parts.length >= 2) {
-                String maaWord = parts[0].trim();
-                String meaning = parts[1].trim();
-
-                Word w = new Word(maaWord);
-                Meaning m = new Meaning(meaning);
-
-                Vocabulary vocab = new Vocabulary();
-                vocab.setMaaWord(w);
-                vocab.addMeaning(m);
-
-                pageVocabulary.add(vocab);
-            } else {
-                // Format inattendu
-                System.out.println("Format inattendu dans la page : " + rawText);
-            }
+            Vocabulary vocabulary = new Vocabulary();
+            vocabulary.setMaaWord(new Word(name != null ? name.text() : "", partOfSpeech != null ? partOfSpeech.text() : ""));
+            pageVocabulary.add(vocabulary);
         }
 
         return pageVocabulary;

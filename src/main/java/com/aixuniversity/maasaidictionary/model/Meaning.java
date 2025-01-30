@@ -11,6 +11,8 @@ public class Meaning {
     private String language;   // Ex : "en" (anglais), "fr" (français), etc.
 
     public Meaning() {
+        this.definition = "";
+        this.language = "";
     }
 
     public Meaning(String definition) {

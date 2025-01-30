@@ -9,6 +9,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         String baseUrl = "https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/";
         List<Vocabulary> vocabularyList = HtmlParser.parseAll(baseUrl);
+        System.out.println("vocabularyList");
 
         for (Vocabulary vocabulary : vocabularyList) {
             System.out.println(vocabulary.toString());

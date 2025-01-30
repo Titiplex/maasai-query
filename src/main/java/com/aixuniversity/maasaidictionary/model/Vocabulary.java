@@ -14,6 +14,7 @@ public class Vocabulary {
     public Vocabulary() {
         // Par défaut, on initialise la liste
         this.meanings = new ArrayList<>();
+        this.maaWord = new Word();
     }
 
     public Word getMaaWord() {
@@ -45,9 +46,9 @@ public class Vocabulary {
     @Override
     public String toString() {
         StringBuilder string = new StringBuilder("Vocabulary {" +
-                "maaWord=" + maaWord.toString() +
-                "\nmeanings=");
-        for (Meaning meaning : meanings) {
+                "\n\tmaaWord\t=\t" + this.maaWord.toString() +
+                "\n\tmeanings\t=\t");
+        for (Meaning meaning : this.meanings) {
             string.append(meaning.toString());
         }
         string.append("\n}");
@@ -58,13 +59,13 @@ public class Vocabulary {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Vocabulary that)) return false;
-        return Objects.equals(maaWord, that.maaWord) &&
-                Objects.equals(meanings, that.meanings);
+        return Objects.equals(this.maaWord, that.maaWord) &&
+                Objects.equals(this.meanings, that.meanings);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(maaWord, meanings);
+        return Objects.hash(this.maaWord, this.meanings);
     }
 }
 
