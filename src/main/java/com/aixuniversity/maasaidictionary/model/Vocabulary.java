@@ -4,17 +4,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Regroupe un mot Maa (Word) et la liste de ses sens (Meanings).
- */
 public class Vocabulary {
     private Word maaWord;
     private List<Meaning> meanings;
+    private List<Example> examples;
 
     public Vocabulary() {
         // Par défaut, on initialise la liste
         this.meanings = new ArrayList<>();
         this.maaWord = new Word();
+        this.examples = new ArrayList<>();
+    }
+
+    public Vocabulary(String word, String partOfSpeech) {
+        this.maaWord = new Word(word, partOfSpeech);
+        this.meanings = new ArrayList<>();
+        this.examples = new ArrayList<>();
     }
 
     public Word getMaaWord() {
@@ -33,6 +38,14 @@ public class Vocabulary {
         this.meanings = meanings;
     }
 
+    public List<Example> getExamples() {
+        return examples;
+    }
+
+    public void setExamples(List<Example> examples) {
+        this.examples = examples;
+    }
+
     /**
      * Méthode utilitaire pour ajouter un sens à la liste.
      */
@@ -43,13 +56,24 @@ public class Vocabulary {
         this.meanings.add(meaning);
     }
 
+    public void addExample(Example example) {
+        if (this.examples == null) {
+            this.examples = new ArrayList<>();
+        }
+        this.examples.add(example);
+    }
+
     @Override
     public String toString() {
         StringBuilder string = new StringBuilder("Vocabulary {" +
-                "\n\tmaaWord\t=\t" + this.maaWord.toString() +
+                "\n\tmaaWord\t\t=\t" + this.maaWord.toString() +
                 "\n\tmeanings\t=\t");
         for (Meaning meaning : this.meanings) {
             string.append(meaning.toString());
+        }
+        string.append("\n\texamples\t=\t");
+        for (Example example : this.examples) {
+            string.append(example.toString());
         }
         string.append("\n}");
         return string.toString();
@@ -57,15 +81,14 @@ public class Vocabulary {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Vocabulary that)) return false;
-        return Objects.equals(this.maaWord, that.maaWord) &&
-                Objects.equals(this.meanings, that.meanings);
+        if (o == null || getClass() != o.getClass()) return false;
+        Vocabulary that = (Vocabulary) o;
+        return Objects.equals(maaWord, that.maaWord) && Objects.equals(meanings, that.meanings) && Objects.equals(examples, that.examples);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.maaWord, this.meanings);
+        return Objects.hash(maaWord, meanings, examples);
     }
 }
 

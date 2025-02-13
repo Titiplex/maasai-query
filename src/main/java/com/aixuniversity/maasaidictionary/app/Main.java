@@ -11,8 +11,11 @@ public class Main {
         List<Vocabulary> vocabularyList = HtmlParser.parseAll(baseUrl);
         System.out.println("vocabularyList");
 
+        int a = 0;
         for (Vocabulary vocabulary : vocabularyList) {
             System.out.println(vocabulary.toString());
+            a++;
         }
+        System.out.println("nb : " + a);
     }
 }

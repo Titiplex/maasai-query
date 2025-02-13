@@ -1,7 +1,6 @@
 package main.java.com.aixuniversity.maasaidictionary.parser;
 
 import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
-import main.java.com.aixuniversity.maasaidictionary.model.Word;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -99,9 +98,9 @@ public abstract class HtmlParser {
         for (Element entry : entries) {
             Element name = entry.selectFirst(".lpLexEntryName");
             Element partOfSpeech = entry.selectFirst(".lpPartOfSpeech");
+            Element miniHeading = entry.selectFirst(".lpMiniHeading");
 
-            Vocabulary vocabulary = new Vocabulary();
-            vocabulary.setMaaWord(new Word(name != null ? name.text() : "", partOfSpeech != null ? partOfSpeech.text() : ""));
+            Vocabulary vocabulary = new Vocabulary(name != null ? name.text() : "", partOfSpeech != null ? partOfSpeech.text() : "");
             pageVocabulary.add(vocabulary);
         }
 

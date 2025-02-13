@@ -6,22 +6,22 @@ import java.util.Objects;
  * Représente un mot (par exemple un mot en Maa).
  */
 public class Word {
-    private String entryName;         // Le mot lui-même (ex : "enkima")
-    private String partOfSpeech; // Optionnel, catégorie grammaticale (ex : "n." pour nom)
+    private String entryName;
+    private PartOfSpeech partOfSpeech;
 
     public Word() {
         this.entryName = "";
-        this.partOfSpeech = "";
+        this.partOfSpeech = new PartOfSpeech();
     }
 
     public Word(String text) {
         this.entryName = text;
-        this.partOfSpeech = "";
+        this.partOfSpeech = new PartOfSpeech();
     }
 
     public Word(String text, String partOfSpeech) {
         this.entryName = text;
-        this.partOfSpeech = partOfSpeech;
+        this.partOfSpeech = new PartOfSpeech(partOfSpeech);
     }
 
     public String getEntryName() {
@@ -32,17 +32,17 @@ public class Word {
         this.entryName = entryName;
     }
 
-    public String getPartOfSpeech() {
+    public PartOfSpeech getPartOfSpeech() {
         return partOfSpeech;
     }
 
-    public void setPartOfSpeech(String partOfSpeech) {
+    public void setPartOfSpeech(PartOfSpeech partOfSpeech) {
         this.partOfSpeech = partOfSpeech;
     }
 
     @Override
     public String toString() {
-        return this.entryName + "(" + this.partOfSpeech + ")";
+        return this.entryName + " (" + this.partOfSpeech + ")";
     }
 
     @Override
