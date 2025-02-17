@@ -1,14 +1,11 @@
 package main.java.com.aixuniversity.maasaidictionary.dao;
 
-import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Properties;
 
-public abstract class DatabaseHelper<E> {
+public abstract class DatabaseHelper {
 
     public static final String URL = System.getenv("URL");
     public static final String USER = System.getenv("USER");
@@ -36,29 +33,6 @@ public abstract class DatabaseHelper<E> {
 
         return DatabaseHelper.conn;
     }
-
-    // TODO fonctions SQL après avoir design spécifiquement la BDD et avoir les structures des models
-
-
-    public abstract void save(E entity);
-
-    /**
-     * Trouve tous les éléments dans une table
-     * à partir d'une entité model liée.
-     *
-     * @param item L'entité de départ dont on veut trouver les éléments liés.
-     * @param <U>  Le type de l'entité de départ.
-     * @return Une liste d'entités du type que l'on cherche.
-     */
-    public abstract <U> List<E> findAll(U item);
-
-    /**
-     * Trouve une instance selon son id.
-     *
-     * @param id L'id de l'objet (entier).
-     * @return L'objet du type spécifié.
-     */
-    public abstract E findById(int id);
 
     /**
      * Closes the connection with postgresql database.
