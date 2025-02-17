@@ -35,8 +35,6 @@ public class PartOfSpeech {
 
     @Override
     public String toString() {
-        return "PartOfSpeech{" +
-                "partOfSpeech='" + partOfSpeech + '\'' +
-                '}';
+        return "partOfSpeech='" + partOfSpeech + '\'';
     }
 }

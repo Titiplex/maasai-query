@@ -1,5 +1,7 @@
 package main.java.com.aixuniversity.maasaidictionary.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -7,21 +9,21 @@ import java.util.Objects;
  */
 public class Word {
     private String entryName;
-    private PartOfSpeech partOfSpeech;
+    private List<PartOfSpeech> partsOfSpeech;
 
     public Word() {
         this.entryName = "";
-        this.partOfSpeech = new PartOfSpeech();
+        this.partsOfSpeech = new ArrayList<PartOfSpeech>();
     }
 
     public Word(String text) {
         this.entryName = text;
-        this.partOfSpeech = new PartOfSpeech();
+        this.partsOfSpeech = new ArrayList<PartOfSpeech>();
     }
 
-    public Word(String text, String partOfSpeech) {
+    public Word(String text, List<PartOfSpeech> partsOfSpeech) {
         this.entryName = text;
-        this.partOfSpeech = new PartOfSpeech(partOfSpeech);
+        this.partsOfSpeech = partsOfSpeech;
     }
 
     public String getEntryName() {
@@ -32,17 +34,31 @@ public class Word {
         this.entryName = entryName;
     }
 
-    public PartOfSpeech getPartOfSpeech() {
-        return partOfSpeech;
+    public List<PartOfSpeech> getPartsOfSpeech() {
+        return partsOfSpeech;
     }
 
-    public void setPartOfSpeech(PartOfSpeech partOfSpeech) {
-        this.partOfSpeech = partOfSpeech;
+    public void setPartOfSpeech(List<PartOfSpeech> partsOfSpeech) {
+        this.partsOfSpeech = partsOfSpeech;
+    }
+
+    public void addPartOfSpeech(String partOfSpeech) {
+        if (this.partsOfSpeech == null) {
+            this.partsOfSpeech = new ArrayList<>();
+        }
+        PartOfSpeech p = new PartOfSpeech(partOfSpeech);
+        if (partsOfSpeech.contains(p)) return;
+        this.partsOfSpeech.add(p);
     }
 
     @Override
     public String toString() {
-        return this.entryName + " (" + this.partOfSpeech + ")";
+        StringBuilder string = new StringBuilder(this.entryName + " \n\tParts of speech: ");
+        for (PartOfSpeech p : this.partsOfSpeech) {
+            string.append("\n\t\t");
+            string.append(p.toString());
+        }
+        return string.toString();
     }
 
     @Override
@@ -51,12 +67,12 @@ public class Word {
         if (o == null || getClass() != o.getClass()) return false;
         Word word = (Word) o;
         return Objects.equals(this.entryName, word.entryName) &&
-                Objects.equals(this.partOfSpeech, word.partOfSpeech);
+                Objects.equals(this.partsOfSpeech, word.partsOfSpeech);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.entryName, this.partOfSpeech);
+        return Objects.hash(this.entryName, this.partsOfSpeech);
     }
 }
 

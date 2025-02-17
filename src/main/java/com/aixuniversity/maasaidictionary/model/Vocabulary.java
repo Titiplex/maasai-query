@@ -16,8 +16,14 @@ public class Vocabulary {
         this.examples = new ArrayList<>();
     }
 
-    public Vocabulary(String word, String partOfSpeech) {
-        this.maaWord = new Word(word, partOfSpeech);
+    public Vocabulary(String word) {
+        this.maaWord = new Word(word);
+        this.meanings = new ArrayList<>();
+        this.examples = new ArrayList<>();
+    }
+
+    public Vocabulary(String word, List<PartOfSpeech> partsOfSpeech) {
+        this.maaWord = new Word(word, partsOfSpeech);
         this.meanings = new ArrayList<>();
         this.examples = new ArrayList<>();
     }
