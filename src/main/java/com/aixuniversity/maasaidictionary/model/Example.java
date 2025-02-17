@@ -62,10 +62,10 @@ public class Example {
 
     @Override
     public String toString() {
-        return "Example{" +
-                "example='" + example + '\'' +
-                ", gloss='" + gloss + '\'' +
-                ", glossLanguage='" + glossLanguage + '\'' +
+        return "Example {" +
+                "\n\texample='" + example + '\'' +
+                "\n\tgloss='" + gloss + '\'' +
+                "\n\tglossLanguage='" + glossLanguage + '\'' +
                 '}';
     }
 }
