@@ -10,3 +10,15 @@ The Maasai dictionary is owned by the university of Oregon.
 
 Please see the following link for the original dictionary :
 https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/main.htm
+
+## Installation and config
+
+In the root folder, you must create a .env and use it to store database connection information :
+
+```
+URL=""
+DATABASE=""
+USER=""
+PASSWORD=""
+```
+You then have to use this .env in your environment so the program can recognize it.
