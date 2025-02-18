@@ -99,8 +99,10 @@ public abstract class HtmlParser {
             Element name = entry.selectFirst(".lpLexEntryName");
             Element partOfSpeech = entry.selectFirst(".lpPartOfSpeech");
             Element miniHeading = entry.selectFirst(".lpMiniHeading");
+            Element headingParadigm;
 
-            Vocabulary vocabulary = new Vocabulary(name != null ? name.text() : "", partOfSpeech != null ? partOfSpeech.text() : "");
+            Vocabulary vocabulary = new Vocabulary(name != null ? name.text() : "");
+            vocabulary.getMaaWord().addPartOfSpeech(partOfSpeech != null ? partOfSpeech.text() : "");
             pageVocabulary.add(vocabulary);
         }
 
