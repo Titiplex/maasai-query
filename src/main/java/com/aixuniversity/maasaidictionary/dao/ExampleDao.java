@@ -1,19 +1,30 @@
 package main.java.com.aixuniversity.maasaidictionary.dao;
 
+import main.java.com.aixuniversity.maasaidictionary.config.SqlStringConfig;
 import main.java.com.aixuniversity.maasaidictionary.model.Example;
 
-import java.util.Collection;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 
 public class ExampleDao extends AbstractDao<Example> {
-
     @Override
-    public void insert(Example item) {
-
+    protected String getEntityKey() {
+        return "ex";
     }
 
     @Override
-    public void insertAll(Collection<Example> collection) {
+    protected Class<Example> getEntityClass() {
+        return Example.class;
+    }
+
+    @Override
+    public Integer insert(Example item) throws SQLException {
+        Connection conn = DatabaseHelper.getConnection();
+        String query = SqlStringConfig.getInsertionString(this.getEntityKey());
+        PreparedStatement stmt = conn.prepareStatement(query);
+
 
     }
 
@@ -28,12 +39,7 @@ public class ExampleDao extends AbstractDao<Example> {
     }
 
     @Override
-    public Example searchById(int id) {
-        return null;
-    }
-
-    @Override
-    public List<Example> getALl() {
+    public List<Example> getAll() {
         return List.of();
     }
 }
