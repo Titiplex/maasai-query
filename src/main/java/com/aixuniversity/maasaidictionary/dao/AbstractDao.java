@@ -9,7 +9,7 @@ import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.*;
 
-public abstract class AbstractDao<T extends AbstractModel> implements DatabaseInterface<T> {
+public abstract class AbstractDao<T extends AbstractModel> implements DaoInterface<T> {
 
     protected abstract Class<T> getEntityClass();
 
