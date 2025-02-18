@@ -7,7 +7,7 @@ import java.util.Objects;
 /**
  * Représente un mot (par exemple un mot en Maa).
  */
-public class Word {
+public class Word extends AbstractModel {
     private String entryName;
     private List<PartOfSpeech> partsOfSpeech;
 

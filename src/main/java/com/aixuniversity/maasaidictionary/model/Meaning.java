@@ -6,9 +6,9 @@ import java.util.Objects;
  * Représente un sens ou une définition d'un mot,
  * éventuellement dans une certaine langue.
  */
-public class Meaning {
-    private String definition; // Ex: "cow, cattle"
-    private String language;   // Ex : "en" (anglais), "fr" (français), etc.
+public class Meaning extends AbstractModel {
+    private String definition;
+    private String language;
 
     public Meaning() {
         this.definition = "";
@@ -17,7 +17,7 @@ public class Meaning {
 
     public Meaning(String definition) {
         this.definition = definition;
-        // On peut mettre "en" par défaut, ou laisser null
+        // English as default language
         this.language = "en";
     }
 

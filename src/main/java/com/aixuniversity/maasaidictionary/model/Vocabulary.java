@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Vocabulary {
+public class Vocabulary extends AbstractModel {
     private Word maaWord;
     private List<Meaning> meanings;
     private List<Example> examples;

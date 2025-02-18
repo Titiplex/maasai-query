@@ -2,7 +2,7 @@ package main.java.com.aixuniversity.maasaidictionary.model;
 
 import java.util.Objects;
 
-public class Example {
+public class Example extends AbstractModel {
     private String example;
     private String gloss;
     private String glossLanguage;

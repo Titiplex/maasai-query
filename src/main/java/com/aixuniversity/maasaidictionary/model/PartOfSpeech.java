@@ -2,7 +2,7 @@ package main.java.com.aixuniversity.maasaidictionary.model;
 
 import java.util.Objects;
 
-public class PartOfSpeech {
+public class PartOfSpeech extends AbstractModel {
     private String partOfSpeech;
 
     public PartOfSpeech() {
