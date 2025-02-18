@@ -6,14 +6,8 @@ import main.java.com.aixuniversity.maasaidictionary.model.AbstractModel;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.*;
+import java.util.*;
 
 public abstract class AbstractDao<T extends AbstractModel> implements DatabaseInterface<T> {
 
@@ -32,6 +26,27 @@ public abstract class AbstractDao<T extends AbstractModel> implements DatabaseIn
     }
 
     @Override
+    public Integer insert(T item) throws SQLException {
+        Connection conn = DatabaseHelper.getConnection();
+        String query = SqlStringConfig.getInsertionString(this.getEntityKey());
+        PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+
+        // 2) Lister les propriétés
+        executeBinding(item, stmt);
+
+        // 4) Exécuter la requête
+        stmt.executeUpdate();
+
+        // 5) Récupérer l'ID généré
+        try (ResultSet rs = stmt.getGeneratedKeys()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return -1; // ou 0, selon la convention
+    }
+
+    @Override
     public T searchById(int id) throws SQLException {
         Connection conn = DatabaseHelper.getConnection();
         String query = SqlStringConfig.getSelectionStringById(getEntityKey(), id);
@@ -44,13 +59,65 @@ public abstract class AbstractDao<T extends AbstractModel> implements DatabaseIn
         return null;
     }
 
+    @Override
+    public List<T> getAll() throws SQLException {
+        Connection conn = DatabaseHelper.getConnection();
+        List<T> list = new ArrayList<>();
+        String query = SqlStringConfig.getSelectionAllString(getEntityKey());
+        PreparedStatement stmt = conn.prepareStatement(query);
+
+        ResultSet rs = stmt.executeQuery();
+        while (rs.next()) {
+            list.add(buildEntityFromResultSet(rs));
+        }
+
+        return list;
+    }
+
+    @Override
+    public boolean update(T item) throws SQLException {
+        Connection conn = DatabaseHelper.getConnection();
+        String query = SqlStringConfig.getUpdateString(getEntityKey(), item.getId());
+        PreparedStatement stmt = conn.prepareStatement(query);
+
+        executeBinding(item, stmt);
+        int rows = stmt.executeUpdate();
+        return rows > 0;
+    }
+
+    private void executeBinding(T item, PreparedStatement stmt) throws SQLException {
+        List<String> columns = DaoConfig.getColumns(getEntityKey());
+        int index = 1;
+        for (String col : columns) {
+            // Récupérer la valeur via un getter ou via un field
+            Object value = getPropertyValue(item, col);
+
+            // Déterminer le type
+            String columnType = DaoConfig.getColumnType(getEntityKey(), col);
+
+            // Binder
+            bindValue(stmt, index, columnType, value);
+
+            index++;
+        }
+    }
+
+    @Override
+    public boolean delete(T item) throws SQLException {
+        Connection conn = DatabaseHelper.getConnection();
+        String query = SqlStringConfig.getDeletionString(getEntityKey(), item.getId());
+        PreparedStatement stmt = conn.prepareStatement(query);
+        int rows = stmt.executeUpdate();
+        return rows > 0;
+    }
+
     protected T buildEntityFromResultSet(ResultSet rs) throws SQLException {
         try {
             // 1) Instancier la classe T (via un constructeur par défaut)
             Class<T> clazz = getEntityClass(); // Méthode abstraite à implémenter
             T instance = clazz.getDeclaredConstructor().newInstance();
 
-            // 2) Récupérer la liste des propriétés (ex: ["id", "name", "price"])
+            // 2) Récupérer la liste des propriétés (ex : ["id", "name", "price"])
             List<String> properties = DaoConfig.getColumns(getEntityKey());
 
             // 3) Pour chaque propriété, lire la colonne SQL et le type
@@ -83,6 +150,36 @@ public abstract class AbstractDao<T extends AbstractModel> implements DatabaseIn
         };
     }
 
+    private void bindValue(PreparedStatement stmt, int index, String columnType, Object value)
+            throws SQLException {
+        switch (columnType) {
+            case "int":
+                // value sera typiquement un Integer
+                if (value == null) {
+                    stmt.setNull(index, Types.INTEGER);
+                } else {
+                    stmt.setInt(index, (Integer) value);
+                }
+                break;
+            case "double":
+                if (value == null) {
+                    stmt.setNull(index, Types.DOUBLE);
+                } else {
+                    stmt.setDouble(index, (Double) value);
+                }
+                break;
+            case "string":
+                stmt.setString(index, (value == null) ? null : value.toString());
+                break;
+            // etc., ajoutez cases pour Date, Boolean...
+            default:
+                // fallback
+                stmt.setObject(index, value);
+                break;
+        }
+    }
+
+
     private void setProperty(T instance, String property, Object value)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         // Ex: property = "name" -> chercher setName(String)
@@ -93,6 +190,16 @@ public abstract class AbstractDao<T extends AbstractModel> implements DatabaseIn
 
         Method setter = instance.getClass().getMethod(methodName, paramType);
         setter.invoke(instance, value);
+    }
+
+    private Object getPropertyValue(T item, String property) {
+        try {
+            String getterName = "get" + capitalize(property); // ex. "getId"
+            Method getter = item.getClass().getMethod(getterName);
+            return getter.invoke(item);
+        } catch (Exception e) {
+            throw new RuntimeException("Impossible d'accéder à la propriété " + property, e);
+        }
     }
 
     // Petit utilitaire
