@@ -1,4 +1,4 @@
-package main.java.com.aixuniversity.maasaidictionary.dao;
+package main.java.com.aixuniversity.maasaidictionary.dao.normal;
 
 import main.java.com.aixuniversity.maasaidictionary.model.Meaning;
 

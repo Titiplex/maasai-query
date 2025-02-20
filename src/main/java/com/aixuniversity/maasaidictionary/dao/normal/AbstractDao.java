@@ -1,7 +1,9 @@
-package main.java.com.aixuniversity.maasaidictionary.dao;
+package main.java.com.aixuniversity.maasaidictionary.dao.normal;
 
 import main.java.com.aixuniversity.maasaidictionary.config.DaoConfig;
 import main.java.com.aixuniversity.maasaidictionary.config.SqlStringConfig;
+import main.java.com.aixuniversity.maasaidictionary.dao.utils.DatabaseHelper;
+import main.java.com.aixuniversity.maasaidictionary.dao.utils.DaoInterface;
 import main.java.com.aixuniversity.maasaidictionary.model.AbstractModel;
 
 import java.lang.reflect.InvocationTargetException;
@@ -83,6 +85,21 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         executeBinding(item, stmt);
         int rows = stmt.executeUpdate();
         return rows > 0;
+    }
+
+    @Override
+    public List<T> getAllFromVocId(int vocId) throws SQLException {
+        Connection conn = DatabaseHelper.getConnection();
+        List<T> list = new ArrayList<>();
+        String query = SqlStringConfig.getSelectionStringByVocId(getEntityKey(), vocId);
+        PreparedStatement stmt = conn.prepareStatement(query);
+
+        ResultSet rs = stmt.executeQuery();
+        while (rs.next()) {
+            list.add(buildEntityFromResultSet(rs));
+        }
+
+        return list;
     }
 
     private void executeBinding(T item, PreparedStatement stmt) throws SQLException {
@@ -186,7 +203,7 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         String methodName = "set" + capitalize(property);
 
         // On suppose que value est déjà du bon type
-        Class<?> paramType = value.getClass(); // par ex. String.class, Integer.class, etc.
+        Class<?> paramType = value.getClass(); // Par ex. String.class, Integer.class, etc.
 
         Method setter = instance.getClass().getMethod(methodName, paramType);
         setter.invoke(instance, value);

@@ -1,4 +1,4 @@
-package main.java.com.aixuniversity.maasaidictionary.dao;
+package main.java.com.aixuniversity.maasaidictionary.dao.utils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

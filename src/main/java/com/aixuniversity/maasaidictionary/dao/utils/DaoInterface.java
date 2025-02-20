@@ -1,4 +1,4 @@
-package main.java.com.aixuniversity.maasaidictionary.dao;
+package main.java.com.aixuniversity.maasaidictionary.dao.utils;
 
 import java.sql.SQLException;
 import java.util.Collection;
@@ -17,4 +17,6 @@ public interface DaoInterface<T> {
     T searchById(int id) throws SQLException;
 
     List<T> getAll() throws SQLException;
+
+    List<T> getAllFromVocId(int vocId) throws SQLException;
 }
