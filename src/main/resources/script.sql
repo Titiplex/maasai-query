@@ -1,3 +1,18 @@
+-- Table for languages
+CREATE TABLE Language
+(
+    id   INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    code VARCHAR(10) NOT NULL,
+    name VARCHAR(50) NOT NULL
+);
+
+-- Table for POS
+CREATE TABLE PartOfSpeech
+(
+    id  INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    pos VARCHAR(50) NOT NULL
+);
+
 -- Table Vocabulary
 CREATE TABLE Vocabulary
 (
@@ -5,42 +20,45 @@ CREATE TABLE Vocabulary
     entry VARCHAR(255) NOT NULL
 );
 
--- Table PartOfSpeech
-CREATE TABLE PartOfSpeech
+-- Table for linking between POS and voc
+CREATE TABLE VocabularyPartOfSpeech
 (
-    id            INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    vocabulary_id INT         NOT NULL,
-    pos           VARCHAR(50) NOT NULL,
-    FOREIGN KEY (vocabulary_id) REFERENCES Vocabulary (id)
+    vocabularyId INT NOT NULL,
+    posId      INT NOT NULL,
+    PRIMARY KEY (vocabularyId, posId),
+    FOREIGN KEY (vocabularyId) REFERENCES Vocabulary (id),
+    FOREIGN KEY (posId) REFERENCES PartOfSpeech (id)
 );
 
--- Table Meaning
+-- Table for meanings
 CREATE TABLE Meaning
 (
     id            INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    vocabulary_id INT         NOT NULL,
-    definition    TEXT        NOT NULL,
-    language      VARCHAR(10) NOT NULL,
-    FOREIGN KEY (vocabulary_id) REFERENCES Vocabulary (id)
+    vocabularyId INT  NOT NULL,
+    definition    TEXT NOT NULL,
+    languageId   INT  NOT NULL,
+    FOREIGN KEY (vocabularyId) REFERENCES Vocabulary (id),
+    FOREIGN KEY (languageId) REFERENCES Language (id)
 );
 
--- Table Example
+-- Table for examples
 CREATE TABLE Example
 (
     id            INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    vocabulary_id INT         NOT NULL,
-    example       TEXT        NOT NULL,
+    vocabularyId INT  NOT NULL,
+    example       TEXT NOT NULL,
     gloss         TEXT,
-    language      VARCHAR(10) NOT NULL,
-    FOREIGN KEY (vocabulary_id) REFERENCES Vocabulary (id)
+    languageId   INT  NOT NULL,
+    FOREIGN KEY (vocabularyId) REFERENCES Vocabulary (id),
+    FOREIGN KEY (languageId) REFERENCES Language (id)
 );
 
--- Table Linked Words
+-- Table for Linked words
 CREATE TABLE VocabularyLinked
 (
-    vocabulary_id        INT NOT NULL,
-    linked_vocabulary_id INT NOT NULL,
-    PRIMARY KEY (vocabulary_id, linked_vocabulary_id),
-    FOREIGN KEY (vocabulary_id) REFERENCES Vocabulary (id),
-    FOREIGN KEY (linked_vocabulary_id) REFERENCES Vocabulary (id)
+    vocabularyId        INT NOT NULL,
+    linkedVocabularyId INT NOT NULL,
+    PRIMARY KEY (vocabularyId, linkedVocabularyId),
+    FOREIGN KEY (vocabularyId) REFERENCES Vocabulary (id),
+    FOREIGN KEY (linkedVocabularyId) REFERENCES Vocabulary (id)
 );

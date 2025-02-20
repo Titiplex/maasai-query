@@ -1,6 +1,5 @@
 package main.java.com.aixuniversity.maasaidictionary.service;
 
-import main.java.com.aixuniversity.maasaidictionary.dao.DatabaseHelper;
 import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
 import main.java.com.aixuniversity.maasaidictionary.parser.HtmlParser;
 
@@ -18,8 +17,8 @@ public class ImportService {
             List<Vocabulary> vocabularyList = HtmlParser.parseAll(startUrl);
 
             for (Vocabulary vocabulary : vocabularyList) {
-                // DatabaseHelper.save(vocabulary);
-                System.out.println("Enregistrement pour " + vocabulary.getMaaWord().getEntryName());
+                
+                System.out.println("Enregistrement pour " + vocabulary.getEntry());
             }
 
             System.out.println("Importation réussie pour : " + startUrl);

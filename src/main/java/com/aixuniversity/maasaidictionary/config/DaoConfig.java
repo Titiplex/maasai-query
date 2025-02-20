@@ -45,6 +45,7 @@ public abstract class DaoConfig {
      * Retourne la liste des colonnes associées à une entité (ex: "users").
      */
     public static List<String> getColumns(String key) {
+        // TODO changer pour retourner directement les noms
         String columns = PROPERTIES.getProperty(key + ".columns");
         if (columns == null) return Collections.emptyList();
         return Arrays.asList(columns.split(","));
