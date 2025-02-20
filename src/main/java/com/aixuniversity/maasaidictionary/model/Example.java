@@ -5,23 +5,23 @@ import java.util.Objects;
 public class Example extends AbstractModel {
     private String example;
     private String gloss;
-    private String glossLanguage;
+    private Language glossLanguage;
 
     public Example() {
         this.example = "";
         this.gloss = "";
-        this.glossLanguage = "";
+        this.glossLanguage = Language.getLanguage("en");
     }
 
     public Example(String example, String gloss) {
         this.example = example;
         this.gloss = gloss;
-        this.glossLanguage = "en";
+        this.glossLanguage = Language.getLanguage("en");
     }
-    public Example(String example, String gloss, String language) {
+    public Example(String example, String gloss, String languageCode) {
         this.example = example;
         this.gloss = gloss;
-        this.glossLanguage = language;
+        this.glossLanguage = Language.getLanguage(languageCode);
     }
 
     public String getExample() {
@@ -40,11 +40,11 @@ public class Example extends AbstractModel {
         this.gloss = gloss;
     }
 
-    public String getGlossLanguage() {
+    public Language getGlossLanguage() {
         return glossLanguage;
     }
 
-    public void setGlossLanguage(String glossLanguage) {
+    public void setGlossLanguage(Language glossLanguage) {
         this.glossLanguage = glossLanguage;
     }
 
@@ -65,7 +65,7 @@ public class Example extends AbstractModel {
         return "Example {" +
                 "\n\texample='" + example + '\'' +
                 "\n\tgloss='" + gloss + '\'' +
-                "\n\tglossLanguage='" + glossLanguage + '\'' +
+                "\n\tglossLanguage='" + glossLanguage.getCode() + '\'' +
                 '}';
     }
 }

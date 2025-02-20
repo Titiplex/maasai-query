@@ -5,9 +5,7 @@ import java.util.Objects;
 public class PartOfSpeech extends AbstractModel {
     private String partOfSpeech;
 
-    public PartOfSpeech() {
-        this.partOfSpeech = "";
-    }
+    //TODO voir pour liste statique POS
 
     public PartOfSpeech(String partOfSpeech) {
         this.partOfSpeech = partOfSpeech;

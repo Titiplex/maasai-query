@@ -8,22 +8,22 @@ import java.util.Objects;
  */
 public class Meaning extends AbstractModel {
     private String definition;
-    private String language;
+    private Language language;
 
     public Meaning() {
         this.definition = "";
-        this.language = "";
+        this.language = Language.getLanguage("en");
     }
 
     public Meaning(String definition) {
         this.definition = definition;
         // English as default language
-        this.language = "en";
+        this.language = Language.getLanguage("en");
     }
 
-    public Meaning(String definition, String language) {
+    public Meaning(String definition, String languageCode) {
         this.definition = definition;
-        this.language = language;
+        this.language = Language.getLanguage(languageCode);
     }
 
     public String getDefinition() {
@@ -34,17 +34,17 @@ public class Meaning extends AbstractModel {
         this.definition = definition;
     }
 
-    public String getLanguage() {
+    public Language getLanguage() {
         return language;
     }
 
-    public void setLanguage(String language) {
+    public void setLanguage(Language language) {
         this.language = language;
     }
 
     @Override
     public String toString() {
-        return definition + "\t(" + language + ")\n";
+        return definition + "\t(" + language.getCode() + ")\n";
     }
 
     @Override
