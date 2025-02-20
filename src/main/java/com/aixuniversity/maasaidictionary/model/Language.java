@@ -13,6 +13,7 @@ public class Language extends AbstractModel{
     public Language(String code, String name) {
         this.code = code;
         this.name = name;
+        addLanguage(this);
     }
 
     public String getCode() {
@@ -32,15 +33,18 @@ public class Language extends AbstractModel{
     }
 
     public static void addLanguage(Language language) {
-        languages.put(language.getCode(), language);
+        if (!languages.containsKey(language.getCode())) {
+            languages.put(language.getCode(), language);
+        }
     }
 
-    public static void removeLanguage(Language language) {
-        languages.remove(language.getCode());
+    public static void removeLanguage(String code) {
+        languages.remove(code);
     }
 
     public static Language getLanguage(String code) {
         return languages.get(code);
+        // TODO exceptions perso
     }
 
     @Override

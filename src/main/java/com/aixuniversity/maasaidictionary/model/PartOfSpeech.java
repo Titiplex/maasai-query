@@ -1,14 +1,15 @@
 package main.java.com.aixuniversity.maasaidictionary.model;
 
-import java.util.Objects;
+import java.util.*;
 
 public class PartOfSpeech extends AbstractModel {
     private String partOfSpeech;
 
-    //TODO voir pour liste statique POS
+    private final static Map<String, PartOfSpeech> partOfSpeechList = new HashMap<>();
 
     public PartOfSpeech(String partOfSpeech) {
         this.partOfSpeech = partOfSpeech;
+        addPartOfSpeechList(this);
     }
 
     public String getPartOfSpeech() {
@@ -17,6 +18,20 @@ public class PartOfSpeech extends AbstractModel {
 
     public void setPartOfSpeech(String partOfSpeech) {
         this.partOfSpeech = partOfSpeech;
+    }
+
+    public static void removePartOfSpeech(String partOfSpeech) {
+        partOfSpeechList.remove(partOfSpeech);
+    }
+
+    public static void addPartOfSpeechList(PartOfSpeech partOfSpeech) {
+        if (!partOfSpeechList.containsKey(partOfSpeech.getPartOfSpeech())) {
+            partOfSpeechList.put(partOfSpeech.getPartOfSpeech(), partOfSpeech);
+        }
+    }
+
+    public static PartOfSpeech getPartOfSpeech(String partOfSpeech) {
+        return partOfSpeechList.get(partOfSpeech);
     }
 
     @Override
