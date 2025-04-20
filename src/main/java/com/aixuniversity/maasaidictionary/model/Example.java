@@ -6,22 +6,36 @@ public class Example extends AbstractModel {
     private String example;
     private String gloss;
     private Language glossLanguage;
+    private int vocabularyId;
+
+    private Dialect dialect;
 
     public Example() {
         this.example = "";
         this.gloss = "";
-        this.glossLanguage = Language.getLanguage("en");
+        this.glossLanguage = Language.getLanguage("en")!=null ? Language.getLanguage("en") : new Language("en", "English");
+        this.dialect = new Dialect();
+    }
+
+    public Example(String example) {
+        this.example = example;
+        this.gloss = "";
+        this.glossLanguage = Language.getLanguage("en")!=null ? Language.getLanguage("en") : new Language("en", "English");
+        this.dialect = new Dialect();
     }
 
     public Example(String example, String gloss) {
         this.example = example;
         this.gloss = gloss;
-        this.glossLanguage = Language.getLanguage("en");
+        this.glossLanguage = Language.getLanguage("en")!=null ? Language.getLanguage("en") : new Language("en", "English");
+        this.dialect = new Dialect();
     }
+
     public Example(String example, String gloss, String languageCode) {
         this.example = example;
         this.gloss = gloss;
-        this.glossLanguage = Language.getLanguage(languageCode);
+        this.glossLanguage = Language.getLanguage(languageCode)!=null ? Language.getLanguage(languageCode) : new Language("en", "English");
+        this.dialect = new Dialect();
     }
 
     public String getExample() {
@@ -30,6 +44,14 @@ public class Example extends AbstractModel {
 
     public void setExample(String example) {
         this.example = example;
+    }
+
+    public int getVocabularyId() {
+        return vocabularyId;
+    }
+
+    public void setVocabularyId(int vocabularyId) {
+        this.vocabularyId = vocabularyId;
     }
 
     public String getGloss() {
@@ -48,16 +70,24 @@ public class Example extends AbstractModel {
         this.glossLanguage = glossLanguage;
     }
 
+    public Dialect getDialect() {
+        return dialect;
+    }
+
+    public void setDialect(Dialect dialect) {
+        this.dialect = dialect;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Example example1 = (Example) o;
-        return Objects.equals(example, example1.example) && Objects.equals(gloss, example1.gloss) && Objects.equals(glossLanguage, example1.glossLanguage);
+        return vocabularyId == example1.vocabularyId && Objects.equals(example, example1.example) && Objects.equals(gloss, example1.gloss) && Objects.equals(glossLanguage, example1.glossLanguage);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(example, gloss, glossLanguage);
+        return Objects.hash(example, gloss, glossLanguage, vocabularyId);
     }
 
     @Override
@@ -65,7 +95,10 @@ public class Example extends AbstractModel {
         return "Example {" +
                 "\n\texample='" + example + '\'' +
                 "\n\tgloss='" + gloss + '\'' +
-                "\n\tglossLanguage='" + glossLanguage.getCode() + '\'' +
-                '}';
+                "\n\tglossLanguage=" + glossLanguage +
+                "\n\tdialect=" + dialect +
+                //TODO les langues qui sont nulles
+                //"\n\tglossLanguage='" + glossLanguage.getCode() + '\'' +
+                "}\n";
     }
 }

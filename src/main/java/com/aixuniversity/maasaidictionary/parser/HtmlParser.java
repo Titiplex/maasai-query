@@ -1,12 +1,14 @@
 package main.java.com.aixuniversity.maasaidictionary.parser;
 
-import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
+import main.java.com.aixuniversity.maasaidictionary.model.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Classe HtmlParser permettant de récupérer le vocabulaire
@@ -54,8 +56,7 @@ public abstract class HtmlParser {
                 // (Si la page courante en contient)
                 // On peut adapter la condition : si c’est un .htm ou .html, on tente de parser
                 if (currentUrl.endsWith(".htm") || currentUrl.endsWith(".html")) {
-                    List<Vocabulary> vocabPage = parsePage(doc);
-                    allVocabulary.addAll(vocabPage);
+                    allVocabulary.addAll(parseVocab(doc));
                 }
 
                 // 2) Récupérer tous les liens <a href="...">
@@ -88,24 +89,117 @@ public abstract class HtmlParser {
      * @param doc Le Document (déjà téléchargé par Jsoup)
      * @return Liste de Vocabulary correspondant au contenu de la page
      */
-    private static List<Vocabulary> parsePage(Document doc) {
+    private static List<Vocabulary> parseVocab(Document doc) {
         List<Vocabulary> pageVocabulary = new ArrayList<>();
 
         // Exemple : on sélectionne tous les paragraphes
         // À vous d’adapter selon la structure HTML réelle
-        Elements entries = doc.select(".lpLexEntryPara"); // :has(.lpLexEntryPara)
+        Elements entries = doc.select(".lpLexEntryPara, .lpLexEntryPara2"); // :has(.lpLexEntryPara)
+        // Liste pour stocker les groupes (un mot par groupe)
+        List<List<Element>> groupedEntries = new ArrayList<>();
+        List<Element> currentGroup = new ArrayList<>();
 
+        // on constitue les groupes
         for (Element entry : entries) {
-            Element name = entry.selectFirst(".lpLexEntryName");
-            Element partOfSpeech = entry.selectFirst(".lpPartOfSpeech");
-            Element miniHeading = entry.selectFirst(".lpMiniHeading");
-            Element headingParadigm;
+            if (entry.hasClass("lpLexEntryPara")) {
+                // Si on trouve un bloc principal, on démarre un nouveau groupe
+                if (!currentGroup.isEmpty()) {
+                    groupedEntries.add(currentGroup);
+                }
+                currentGroup = new ArrayList<>();
+            }
+            currentGroup.add(entry);
+        }
+        // Ne pas oublier d'ajouter le dernier groupe
+        if (!currentGroup.isEmpty()) {
+            groupedEntries.add(currentGroup);
+        }
+
+        // TODO : review
+        for (List<Element> group : groupedEntries) {
+            Element baseEntry = group.getFirst(); // lpLexEntryPara est toujours le premier
+
+            Element name = baseEntry.selectFirst(".lpLexEntryName");
+            Element partOfSpeech = baseEntry.selectFirst(".lpPartOfSpeech");
 
             Vocabulary vocabulary = new Vocabulary(name != null ? name.text() : "");
-            vocabulary.getMaaWord().addPartOfSpeech(partOfSpeech != null ? partOfSpeech.text() : "");
+
+            Element idx = baseEntry.selectFirst("sub > span.lpHomonymIndex");
+            if (idx != null) {
+                String rawIdx = idx.text().trim();
+                try {
+                    vocabulary.setHomonymIndex(Integer.parseInt(rawIdx));
+                } catch (NumberFormatException ignored) { }
+            }
+
+            if (partOfSpeech != null) {
+                for (String pos : partOfSpeech.text().split(" ")) {
+                    vocabulary.addPartOfSpeech(new PartOfSpeech(pos));
+                }
+            }
+
+            // Stocker les miniHeadings et leurs paradigmes
+            Map<String, Element> miniHeadingsMap = new HashMap<>();
+
+            // On traite tous les enfants de tous les éléments du groupe
+            for (Element entry : group) {
+                Elements children = entry.children();
+
+                for (int i = 0; i < children.size(); i++) {
+                    Element child = children.get(i);
+
+                    if (child.hasClass("lpMiniHeading")) {
+                        // Vérifie si l'élément suivant existe dans l'ordre DOM local
+                        if (i + 1 < children.size()) {
+                            Element next = children.get(i + 1);
+                            if (next.hasClass("lpParadigm")) {
+                                miniHeadingsMap.put(child.text(), next);
+                            }
+                        } else {
+                            vocabulary.addDialect(extractDialects(child));
+                        }
+                    } else if (child.hasClass("lpExample")) {
+                        if (i + 1 < children.size()) {
+                            Element next = children.get(i + 1);
+                            if (next.hasClass("lpGlossEnglish")) {
+                                vocabulary.addExample(new Example(child.text(), next.text()));
+                            }
+                        } else vocabulary.addExample(new Example(child.text()));
+                    } else if (child.hasClass("lpPartOfSpeech") || child.hasClass("lpSenseNumber")) {
+                        if (i + 1 < children.size()) {
+                            Element next = children.get(i + 1);
+                            if (next.hasClass("lpGlossEnglish")) {
+                                vocabulary.addMeaning(new Meaning(next.text()));
+                            }
+                        }
+                    }
+                }
+            }
             pageVocabulary.add(vocabulary);
         }
 
         return pageVocabulary;
+    }
+
+    private static Dialect extractDialects(Element dialectElement) {
+        Dialect dialect = new Dialect();
+        if (dialectElement != null) {
+            String fullText = dialectElement.text();
+
+            // Regex pour extraire le contenu entre crochets
+            Pattern pattern = Pattern.compile("\\[(.*?)]");
+            Matcher matcher = pattern.matcher(fullText);
+
+            if (matcher.find()) {
+                String insideBrackets = matcher.group(1); // contenu entre []
+                // Si plusieurs dialectes séparés par des virgules
+                // TODO liste dialects
+//                for (String d : insideBrackets.split(",")) {
+//                    dialect.setDialect(d.trim());
+//                }
+                dialect.setDialectName(insideBrackets);
+            }
+        }
+        return dialect;
     }
 }

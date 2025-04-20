@@ -1,39 +1,77 @@
 package main.java.com.aixuniversity.maasaidictionary.model;
 
+import main.java.com.aixuniversity.maasaidictionary.parser.extractors.IPAExtractor;
+import main.java.com.aixuniversity.maasaidictionary.parser.extractors.Syllable;
+import main.java.com.aixuniversity.maasaidictionary.parser.extractors.SyllableExtractor;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Vocabulary extends AbstractModel {
     private String entry;
+    // TODO passer les listes en Set ?
     private List<PartOfSpeech> partsOfSpeech;
     private List<Meaning> meanings;
     private List<Example> examples;
     private List<Vocabulary> linkedVocabularies;
+    private List<Dialect> dialects;
+    private final String ipa;
+    private final List<Syllable> syllables;
+    private int homonymIndex = 1;
+    private static final Pattern DIALECT_PATTERN = Pattern.compile("\\[(.+?)]");
 
     public Vocabulary() {
-        // Par défaut, on initialise la liste
         this.entry = "";
         this.meanings = new ArrayList<>();
         this.examples = new ArrayList<>();
         this.partsOfSpeech = new ArrayList<>();
         this.linkedVocabularies = new ArrayList<>();
+        this.dialects = new ArrayList<>();
+        this.ipa = "";
+        this.syllables = new ArrayList<>();
     }
 
     public Vocabulary(String word) {
-        this.entry = word;
         this.meanings = new ArrayList<>();
         this.examples = new ArrayList<>();
         this.partsOfSpeech = new ArrayList<>();
         this.linkedVocabularies = new ArrayList<>();
+        this.dialects = new ArrayList<>();
+
+        this.entry = clean(word);
+
+        this.ipa = IPAExtractor.parseIPA(this.entry);
+        this.syllables = SyllableExtractor.extractSyllablesAndPatterns(this.ipa);
     }
 
-    public Vocabulary(String word, List<PartOfSpeech> partsOfSpeech, List<Meaning> meanings, List<Example> examples) {
-        this.entry = word;
+    public Vocabulary(String word, List<PartOfSpeech> partsOfSpeech, List<Meaning> meanings, List<Example> examples, List<Dialect> dialects) {
         this.partsOfSpeech = partsOfSpeech;
         this.meanings = meanings;
         this.examples = examples;
         this.linkedVocabularies = new ArrayList<>();
+        this.dialects = dialects;
+
+        this.entry = clean(word);
+
+        this.ipa = IPAExtractor.parseIPA(this.entry);
+        this.syllables = SyllableExtractor.extractSyllablesAndPatterns(this.ipa);
+    }
+
+    public Vocabulary(String word, List<PartOfSpeech> partsOfSpeech, List<Meaning> meanings, List<Example> examples, List<Dialect> dialects, List<Syllable> syllables, String ipa) {
+        this.partsOfSpeech = partsOfSpeech;
+        this.meanings = meanings;
+        this.examples = examples;
+        this.linkedVocabularies = new ArrayList<>();
+        this.dialects = dialects;
+
+        this.entry = clean(word);
+
+        this.ipa = ipa;
+        this.syllables = syllables;
     }
 
     public String getEntry() {
@@ -72,8 +110,38 @@ public class Vocabulary extends AbstractModel {
         return linkedVocabularies;
     }
 
+    public int getHomonymIndex() {
+        return homonymIndex;
+    }
+
+    public void setHomonymIndex(int homonymIndex) {
+        this.homonymIndex = homonymIndex;
+    }
+
     public void setLinkedVocabularies(List<Vocabulary> linkedVocabularies) {
         this.linkedVocabularies = linkedVocabularies;
+    }
+
+    public List<Dialect> getDialects() {
+        return dialects;
+    }
+
+    public void setDialects(List<Dialect> dialects) {
+        this.dialects = dialects;
+    }
+
+    public String getIpa() {
+        return ipa;
+    }
+
+    public List<Syllable> getSyllablesList() {
+        return syllables;
+    }
+
+    public String getSyllables() {
+        return syllables.stream()
+                .map(Syllable::getPattern)
+                .collect(Collectors.joining("|"));
     }
 
     /**
@@ -103,25 +171,35 @@ public class Vocabulary extends AbstractModel {
         this.partsOfSpeech.add(partOfSpeech);
     }
 
+    public void addDialect(Dialect dialect) {
+        if (this.dialects == null) {
+            this.dialects = new ArrayList<>();
+        }
+        if (this.dialects.contains(dialect)) return;
+        this.dialects.add(dialect);
+    }
+
     @Override
     public String toString() {
         StringBuilder string = new StringBuilder("Vocabulary {" +
-                "\n\tmaaWord\t\t=\t" + this.entry +
+                "\n\tmaaWord\t\t=\t" + this.entry + "\n\tdialects\t\t=\t" + this.dialects.toString() +
                 "\n\tpos\t=\t");
         for (PartOfSpeech partOfSpeech : this.partsOfSpeech) {
-            string.append(partOfSpeech.toString());
+            string.append(partOfSpeech == null ? "" : partOfSpeech.toString());
         }
+        string.append("\n\tipa=\t").append(this.ipa);
+        string.append("\n\tsyllables\t=\t").append(this.syllables.toString());
         string.append("\n\tmeanings\t=\t");
         for (Meaning meaning : this.meanings) {
-            string.append(meaning.toString());
+            string.append(meaning == null ? "" : meaning.toString());
         }
         string.append("\n\texamples\t=\t");
         for (Example example : this.examples) {
-            string.append(example.toString());
+            string.append(example == null ? "" : example.toString());
         }
         string.append("\n\tlinkedVocabularies\t=\t");
         for (Vocabulary vocabulary : this.linkedVocabularies) {
-            string.append(vocabulary.getEntry());
+            string.append(vocabulary == null ? "" : vocabulary.getEntry());
         }
         string.append("\n}");
         return string.toString();
@@ -129,14 +207,48 @@ public class Vocabulary extends AbstractModel {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Vocabulary that = (Vocabulary) o;
-        return Objects.equals(entry, that.entry) && Objects.equals(partsOfSpeech, that.partsOfSpeech) && Objects.equals(meanings, that.meanings) && Objects.equals(examples, that.examples) && Objects.equals(linkedVocabularies, that.linkedVocabularies);
+        if (!(o instanceof Vocabulary that)) return false;
+        return getHomonymIndex() == that.getHomonymIndex() && Objects.equals(getEntry(), that.getEntry()) && Objects.equals(getIpa(), that.getIpa());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(entry, partsOfSpeech, meanings, examples, linkedVocabularies);
+        return Objects.hash(getEntry(), getIpa(), getHomonymIndex());
+    }
+
+    public void setAllIds() {
+        // TODO erreur si id == null
+
+        for (Example example : examples) {
+            example.setVocabularyId(this.getId());
+        }
+        for (Meaning meaning : meanings) {
+            meaning.setVocabularyId(this.getId());
+        }
+    }
+
+    /**
+     * Nettoie le nom cru d'une entrée :
+     * 1) Extrait toutes les occurences de [....] comme codes de dialecte
+     * 2) Supprime ces occurences du nom
+     * 3) Retire les espaces superflus en début/fin
+     *
+     * @param rawName Nom d'entrée tel qu'on le récupère (p. ex. "foo [North] [South]")
+     * @return un objet CleanedEntry contenant baseName et liste de dialectes
+     */
+    private String clean(String rawName) {
+        Matcher m = DIALECT_PATTERN.matcher(rawName);
+
+        // Collecte de tous les dialectes
+        while (m.find()) {
+            String dialect = m.group(1).trim();
+            addDialect(new Dialect(dialect));
+        }
+
+        // On enlève toutes les balises [..] du nom
+        //TODO split , par ex
+        return rawName.replaceAll("\\s*\\[.+?]\\s*", "")
+                .trim();
     }
 }
 

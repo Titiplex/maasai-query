@@ -8,8 +8,9 @@ public class PartOfSpeech extends AbstractModel {
     private final static Map<String, PartOfSpeech> partOfSpeechList = new HashMap<>();
 
     public PartOfSpeech(String partOfSpeech) {
+        super();
         this.partOfSpeech = partOfSpeech;
-        addPartOfSpeechList(this);
+        addPartOfSpeech(this);
     }
 
     public String getPartOfSpeech() {
@@ -24,7 +25,7 @@ public class PartOfSpeech extends AbstractModel {
         partOfSpeechList.remove(partOfSpeech);
     }
 
-    public static void addPartOfSpeechList(PartOfSpeech partOfSpeech) {
+    public static void addPartOfSpeech(PartOfSpeech partOfSpeech) {
         if (!partOfSpeechList.containsKey(partOfSpeech.getPartOfSpeech())) {
             partOfSpeechList.put(partOfSpeech.getPartOfSpeech(), partOfSpeech);
         }
@@ -32,6 +33,10 @@ public class PartOfSpeech extends AbstractModel {
 
     public static PartOfSpeech getPartOfSpeech(String partOfSpeech) {
         return partOfSpeechList.get(partOfSpeech);
+    }
+
+    public static Map<String, PartOfSpeech> getPartOfSpeechList() {
+        return partOfSpeechList;
     }
 
     @Override

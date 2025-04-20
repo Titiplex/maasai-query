@@ -25,9 +25,10 @@ public abstract class AbstractLinkTableDao<T extends AbstractModel> implements L
      */
     @Override
     public void insertLink(Integer firstId, Integer secondId) throws SQLException {
-        String query = SqlStringConfig.getInsertionString(getLinkTableKey());
-        try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
+        String baseQuery = SqlStringConfig.getInsertionString(getLinkTableKey());
+        String query = baseQuery.replaceFirst("insert\\s+into", "insert ignore into");
+        Connection conn = DatabaseHelper.getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
 
             ps.setInt(1, firstId);
             ps.setInt(2, secondId);

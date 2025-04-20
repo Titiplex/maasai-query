@@ -17,6 +17,8 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
 
     protected abstract String getEntityKey();
 
+    // TODO vérifier l'insertion de l'id du vocabulaire
+
     @Override
     public Map<T, Integer> insertAll(Collection<T> collection) throws SQLException {
         Map<T, Integer> idMap = new HashMap<>();

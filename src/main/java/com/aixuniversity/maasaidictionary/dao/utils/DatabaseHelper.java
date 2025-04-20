@@ -13,25 +13,22 @@ public abstract class DatabaseHelper {
     public static final String DATABASE = System.getenv("DATABASE");
     public static Connection conn = null;
 
-    public static Connection getConnection() {
-        // on ouvre trop de connections à chaque fois et on surcharge le serveur
-        // solution : une connection que l'on ferme quand l'application se ferme
-        if (conn == null) {
-            try {
+    public static synchronized Connection getConnection() {
+        try {
+            if (conn == null || conn.isClosed()) {
                 Properties props = new Properties();
-                props.setProperty("user", DatabaseHelper.USER);
-                props.setProperty("password", DatabaseHelper.PASSWORD);
-                props.setProperty("database", DatabaseHelper.DATABASE);
+                props.setProperty("user",     USER);
+                props.setProperty("password", PASSWORD);
+                // généralement la database est déjà dans l’URL ; sinon :
+                props.setProperty("database", DATABASE);
 
                 conn = DriverManager.getConnection(URL, props);
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            } finally {
                 System.out.println("Database connection established.");
             }
+            return conn;
+        } catch (SQLException e) {
+            throw new RuntimeException("Unable to obtain DB connection", e);
         }
-
-        return DatabaseHelper.conn;
     }
 
     /**

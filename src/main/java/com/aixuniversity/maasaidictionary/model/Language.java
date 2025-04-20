@@ -1,10 +1,12 @@
 package main.java.com.aixuniversity.maasaidictionary.model;
 
+import main.java.com.aixuniversity.maasaidictionary.exc.LanguageNullCodeException;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class Language extends AbstractModel{
+public class Language extends AbstractModel {
 
     private final static Map<String, Language> languages = new HashMap<>();
     private String code;
@@ -32,31 +34,36 @@ public class Language extends AbstractModel{
         this.name = name;
     }
 
+    public static Map<String, Language> getLanguages() {
+        return languages;
+    }
+
     public static void addLanguage(Language language) {
         if (!languages.containsKey(language.getCode())) {
             languages.put(language.getCode(), language);
         }
     }
 
-    public static void removeLanguage(String code) {
+    public static void removeLanguage(String code) throws LanguageNullCodeException {
+        if (!languages.containsKey(code)) throw new LanguageNullCodeException(code);
         languages.remove(code);
     }
 
     public static Language getLanguage(String code) {
+        if (!languages.containsKey(code)) return null;
         return languages.get(code);
-        // TODO exceptions perso
     }
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Language language = (Language) o;
-        return Objects.equals(code, language.code) && Objects.equals(name, language.name);
+        if (this == o) return true;
+        if (!(o instanceof Language that)) return false;
+        return Objects.equals(code, that.code);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(code, name);
+        return Objects.hashCode(getCode());
     }
 
     @Override
