@@ -5,4 +5,8 @@ package main.java.com.aixuniversity.maasaidictionary.service;
  * (Logique par structure syllabique, prononciation, etc)
  */
 public class SearchService {
+
+    public SearchService() {
+
+    }
 }

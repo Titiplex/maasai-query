@@ -6,7 +6,6 @@ import main.java.com.aixuniversity.maasaidictionary.config.IPAConfig;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Classe qui extrait les syllabes et leurs patterns détaillés à partir d'une chaîne IPA.
@@ -28,9 +27,9 @@ public class SyllableExtractor {
      */
     public static List<Syllable> extractSyllablesAndPatterns(String ipaWord) {
         // Récupérer la liste des voyelles à partir des symboles configurés en IPA.properties.
-        Set<String> vowels = IPAConfig.getAllVowels();
+        IPAConfig.getAllVowels();
         // Tokenisation du mot IPA en tenant compte des digrammes et des diacritiques.
-        List<String> tokens = tokenizeIPAWord(ipaWord, vowels);
+        List<String> tokens = tokenizeIPAWord(ipaWord);
 
         List<Syllable> syllables = new ArrayList<>();
         List<String> currentSyllableTokens = new ArrayList<>();
@@ -87,13 +86,13 @@ public class SyllableExtractor {
         }
         // 4) Post‑processing : si la 1ère syllabe est V + C…, on la scinde en [V] + [C…]
         if (!syllables.isEmpty()) {
-            Syllable first = syllables.get(0);
+            Syllable first = syllables.getFirst();
             List<String> toks = first.getTokens();  // grâce à votre getter getTokens()
             if (toks.size() >= 2
                     && isVowelToken(toks.get(0))
                     && isConsonantToken(toks.get(1))) {
                 // 1) nouvelle syl V
-                String syl1 = toks.get(0);
+                String syl1 = toks.getFirst();
                 String pat1 = computeDetailedPattern(List.of(syl1));
                 // 2) reste → CV…
                 List<String> rest = toks.subList(1, toks.size());
@@ -113,10 +112,9 @@ public class SyllableExtractor {
      * On tente d'abord d'identifier un digramme (ex. "ch", "sh", "ny"), sinon on traite caractère par caractère.
      *
      * @param ipaWord La chaîne IPA à tokeniser.
-     * @param vowels  La liste des voyelles IPA.
      * @return Une liste de tokens représentant les unités phonémiques.
      */
-    static List<String> tokenizeIPAWord(String ipaWord, Set<String> vowels) {
+    static List<String> tokenizeIPAWord(String ipaWord) {
         List<String> tokens = new ArrayList<>();
         int pos = 0;
         while (pos < ipaWord.length()) {
@@ -134,7 +132,7 @@ public class SyllableExtractor {
             char ch = ipaWord.charAt(pos);
             if (isDiacritic(ch)) {
                 if (!tokens.isEmpty()) {
-                    String prev = tokens.remove(tokens.size() - 1);
+                    String prev = tokens.removeLast();
                     tokens.add(prev + ch);
                 } else {
                     tokens.add(String.valueOf(ch));

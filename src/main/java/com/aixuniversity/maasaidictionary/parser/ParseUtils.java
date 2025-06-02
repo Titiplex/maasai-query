@@ -10,7 +10,7 @@ import java.util.Set;
 
 public class ParseUtils {
     /**
-     * Parse les mini headings pour une liste
+     * Parse les minis headings pour une liste
      *
      * @param doc Le document à Parser
      * @return Un set contenant les miniheadings

@@ -2,9 +2,6 @@ package main.java.com.aixuniversity.maasaidictionary.parser.extractors;
 
 import main.java.com.aixuniversity.maasaidictionary.config.IPAConfig;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Classe qui contient des méthodes pour parser une chaîne d'entrée en IPA.
  * Ce parser intègre la gestion des digrammes, des diacritiques et le traitement spécifique des particules.
@@ -13,10 +10,10 @@ public abstract class IPAExtractor {
     /**
      * Extrait la chaîne IPA correspondant au mot d'entrée.
      * Si le mot contient une particule suivie d'un tiret en début d'entrée,
-     * la particule est traitée de manière spécifique :
-     * - Si la particule est constituée uniquement d'une consonne (ou d'un groupe purement consonantique),
-     * elle est fusionnée avec la racine (la syllabe suivante).
-     * - Si la particule contient une voyelle (donc consonne+voyelle), elle sera considérée comme une syllabe à part.
+     * la particule est traitée de manière spécifique :</br>
+     * – Si la particule est constituée uniquement d'une consonne (ou d'un groupe purement consonantique),
+     * elle est fusionnée avec la racine (la syllabe suivante).</br>
+     * – Si la particule contient une voyelle (donc consonne+voyelle), elle sera considérée comme une syllabe à part.
      *
      * @param word Le mot d'entrée en orthographe (contenant éventuellement des tirets)
      * @return La représentation IPA du mot, avec éventuellement un séparateur espace si la particule forme une syllabe distincte.
