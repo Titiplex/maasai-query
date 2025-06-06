@@ -1,6 +1,7 @@
-package main.java.com.aixuniversity.maasaidictionary.parser.extractors;
+package main.java.com.aixuniversity.maasaidictionary.model;
 
 import java.util.List;
+import main.java.com.aixuniversity.maasaidictionary.parser.extractors.SyllableExtractor;
 
 public class Syllable {
     private String text;

@@ -24,4 +24,12 @@ public abstract class AbbreviationConfig {
         // supprime tous les espaces (y compris tabulations, retours chariot…)
         return raw.replaceAll("\\s+", "");
     }
+
+    /**
+     * Même comportement que get(), mais retourne defaultValue si la clé n'existe pas.
+     */
+    public static String getOrDefault(String key, String defaultValue) {
+        String val = get(key);
+        return (val != null) ? val : defaultValue;
+    }
 }

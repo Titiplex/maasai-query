@@ -1,7 +1,6 @@
 package main.java.com.aixuniversity.maasaidictionary.model;
 
 import main.java.com.aixuniversity.maasaidictionary.parser.extractors.IPAExtractor;
-import main.java.com.aixuniversity.maasaidictionary.parser.extractors.Syllable;
 import main.java.com.aixuniversity.maasaidictionary.parser.extractors.SyllableExtractor;
 
 import java.util.ArrayList;
@@ -12,6 +11,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Vocabulary extends AbstractModel {
+    private static final Pattern DIALECT_PATTERN = Pattern.compile("\\[(.+?)]");
+    private final String ipa;
+    private final List<Syllable> syllables;
     private String entry;
     // TODO passer les listes en Set ?
     private List<PartOfSpeech> partsOfSpeech;
@@ -19,10 +21,7 @@ public class Vocabulary extends AbstractModel {
     private List<Example> examples;
     private List<Vocabulary> linkedVocabularies;
     private List<Dialect> dialects;
-    private final String ipa;
-    private final List<Syllable> syllables;
     private int homonymIndex = 1;
-    private static final Pattern DIALECT_PATTERN = Pattern.compile("\\[(.+?)]");
 
     public Vocabulary() {
         this.entry = "";
@@ -45,7 +44,7 @@ public class Vocabulary extends AbstractModel {
         this.entry = clean(word);
 
         this.ipa = IPAExtractor.parseIPA(this.entry);
-        this.syllables = SyllableExtractor.extractSyllablesAndPatterns(this.ipa);
+        this.syllables = SyllableExtractor.extract(this.ipa);
     }
 
     public Vocabulary(String word, List<PartOfSpeech> partsOfSpeech, List<Meaning> meanings, List<Example> examples, List<Dialect> dialects) {
@@ -58,7 +57,7 @@ public class Vocabulary extends AbstractModel {
         this.entry = clean(word);
 
         this.ipa = IPAExtractor.parseIPA(this.entry);
-        this.syllables = SyllableExtractor.extractSyllablesAndPatterns(this.ipa);
+        this.syllables = SyllableExtractor.extract(this.ipa);
     }
 
     public Vocabulary(String word, List<PartOfSpeech> partsOfSpeech, List<Meaning> meanings, List<Example> examples, List<Dialect> dialects, List<Syllable> syllables, String ipa) {
@@ -110,16 +109,16 @@ public class Vocabulary extends AbstractModel {
         return linkedVocabularies;
     }
 
+    public void setLinkedVocabularies(List<Vocabulary> linkedVocabularies) {
+        this.linkedVocabularies = linkedVocabularies;
+    }
+
     public int getHomonymIndex() {
         return homonymIndex;
     }
 
     public void setHomonymIndex(int homonymIndex) {
         this.homonymIndex = homonymIndex;
-    }
-
-    public void setLinkedVocabularies(List<Vocabulary> linkedVocabularies) {
-        this.linkedVocabularies = linkedVocabularies;
     }
 
     public List<Dialect> getDialects() {

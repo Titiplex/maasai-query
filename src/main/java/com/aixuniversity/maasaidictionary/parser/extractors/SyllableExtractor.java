@@ -2,278 +2,211 @@ package main.java.com.aixuniversity.maasaidictionary.parser.extractors;
 
 import main.java.com.aixuniversity.maasaidictionary.config.AbbreviationConfig;
 import main.java.com.aixuniversity.maasaidictionary.config.IPAConfig;
+import main.java.com.aixuniversity.maasaidictionary.model.Syllable;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
- * Classe qui extrait les syllabes et leurs patterns détaillés à partir d'une chaîne IPA.
- * <p>
- * Ce découpeur utilise le fichier IPA.properties pour définir les symboles IPA et leurs catégories
- * phonétiques (possiblement multiples), par exemple "plosive,alveolar" ou "vowel,central,rounded".
- * Chaque token est ainsi transformé en pattern détaillé en mappant chacune des catégories à une abréviation.
+ * Syllabifier précis pour le maa (dialecte kisongo / arusa).
+ * – syllabe = (C)(C)V(V)(G)(C)
+ * – codas limitées, onsets validés phonotactiquement
+ * – support des voyelles longues (ː ou double lettre)
+ * – prise en compte des glides et des prénasalisées
  */
-public class SyllableExtractor {
+public final class SyllableExtractor {
 
-    // Liste des digrammes IPA définis dans IPA.properties (en minuscules pour la comparaison).
-    private static final List<String> IPA_DIGRAMS = Arrays.asList("ch", "sh", "ny");
+    /* ----------  SEGMENTS  ---------- */
+    // TODO reindexer les properties pour récupérer legal/pas
+    private static final Set<String> DIGRAPHS = Set.of(
+            "ch", "sh", "ny", "ng", "ŋg", "mb", "nd", "nj", "rr", "ww", "yy", "kʼ", "tʃʼ"
+    );
+
+    private static final Set<String> LEGAL_CODA = Set.of("r", "l", "m", "n", "ŋ", "s");
+
+    private static final Set<List<String>> LEGAL_ONSETS = Set.of(
+            List.of("mb"), List.of("nd"), List.of("nj"), List.of("ng"), List.of("ŋg"),
+            List.of("l", "w"), List.of("l", "j")
+    );
+
+    /* ----------  PUBLIC API  ---------- */
+
+    public static List<Syllable> extract(String ipaInput) {
+        List<String> tokens = tokenize(ipaInput);
+        return syllabify(tokens);
+    }
 
     /**
-     * Extrait les syllabes et leurs patterns détaillés d'une chaîne IPA.
-     *
-     * @param ipaWord La chaîne IPA à traiter.
-     * @return Une liste d'objets Syllable contenant le texte de la syllabe et son pattern.
+     * Wrapper sécurisé pour la tokenisation IPA.
+     * Retourne une liste non modifiable de tokens pour éviter qu'on casse la structure interne.
      */
-    public static List<Syllable> extractSyllablesAndPatterns(String ipaWord) {
-        // Récupérer la liste des voyelles à partir des symboles configurés en IPA.properties.
-        IPAConfig.getAllVowels();
-        // Tokenisation du mot IPA en tenant compte des digrammes et des diacritiques.
-        List<String> tokens = tokenizeIPAWord(ipaWord);
+    public static List<String> tokenizeIPAWord(String ipaWord) {
+        List<String> raw = tokenize(ipaWord);
+        return Collections.unmodifiableList(raw);
+    }
 
-        List<Syllable> syllables = new ArrayList<>();
-        List<String> currentSyllableTokens = new ArrayList<>();
+    /* ----------  TOKENISATION  ---------- */
 
-        int pos = 0;
-        while (pos < tokens.size()) {
-            String token = tokens.get(pos);
-            // Si on n'a pas d'onset en cours et que le token est une voyelle, on en fait
-            // une syllabe autonome : V . (pour éviter VCV), puis on continue.
-            if (currentSyllableTokens.isEmpty() && isVowelToken(token)) {
-                String pat = computeDetailedPattern(List.of(token));
-                syllables.add(new Syllable(token, pat));
-                pos++;
+    private static List<String> tokenize(String ipa) {
+        List<String> out = new ArrayList<>();
+        int i = 0;
+        while (i < ipa.length()) {
+
+            // 1. digraph
+            if (i + 1 < ipa.length()) {
+                String bi = ipa.substring(i, i + 2);
+                if (DIGRAPHS.contains(bi.toLowerCase())) {
+                    out.add(bi);
+                    i += 2;
+                    continue;
+                }
+            }
+
+            char ch = ipa.charAt(i);
+
+            // 2. diacritique -> fusion avec token précédent
+            if (isDiacritic(ch) || ch == 'ː') {
+                if (!out.isEmpty()) {
+                    out.set(out.size() - 1, out.getLast() + ch);
+                } else {
+                    out.add(String.valueOf(ch));
+                }
+                i++;
                 continue;
             }
-            //cas normal
-            if (isConsonantToken(token)) {
-                currentSyllableTokens.add(token);
-                pos++;
-            } else if (isVowelToken(token)) {
-                currentSyllableTokens.add(token);
-                pos++;
 
-                // Rassembler les tokens suivants qui sont des consonnes pour constituer un cluster candidat.
-                List<String> candidateCoda = new ArrayList<>();
-                while (pos < tokens.size() && isConsonantToken(tokens.get(pos))) {
-                    candidateCoda.add(tokens.get(pos));
-                    pos++;
-                }
-
-                // Déterminer, via une règle d'onset maximal, combien de tokens du cluster vont à la coda.
-                int splitPoint = determineSplit(candidateCoda);
-                for (int i = 0; i < splitPoint; i++) {
-                    currentSyllableTokens.add(candidateCoda.get(i));
-                }
-                String syllableText = joinTokens(currentSyllableTokens);
-                // Calcul du pattern détaillé basé sur les multiples catégories.
-                String pattern = computeDetailedPattern(currentSyllableTokens);
-                syllables.add(new Syllable(syllableText, pattern));
-
-                // Les tokens restants du cluster forment l'onset de la syllabe suivante.
-                currentSyllableTokens = new ArrayList<>();
-                for (int i = splitPoint; i < candidateCoda.size(); i++) {
-                    currentSyllableTokens.add(candidateCoda.get(i));
-                }
-            } else {
-                pos++;
+            // 3. voyelle doublée (longueur par redoublement)
+            if (isVowelChar(ch) && i + 1 < ipa.length() && ipa.charAt(i + 1) == ch) {
+                out.add("" + ch + ch);
+                i += 2;
+                continue;
             }
-        }
-        if (!currentSyllableTokens.isEmpty()) {
-            String syllableText = joinTokens(currentSyllableTokens);
-            String pattern = computeDetailedPattern(currentSyllableTokens);
-            syllables.add(new Syllable(syllableText, pattern));
-        }
-        // 4) Post‑processing : si la 1ère syllabe est V + C…, on la scinde en [V] + [C…]
-        if (!syllables.isEmpty()) {
-            Syllable first = syllables.getFirst();
-            List<String> toks = first.getTokens();  // grâce à votre getter getTokens()
-            if (toks.size() >= 2
-                    && isVowelToken(toks.get(0))
-                    && isConsonantToken(toks.get(1))) {
-                // 1) nouvelle syl V
-                String syl1 = toks.getFirst();
-                String pat1 = computeDetailedPattern(List.of(syl1));
-                // 2) reste → CV…
-                List<String> rest = toks.subList(1, toks.size());
-                String syl2 = joinTokens(rest);
-                String pat2 = computeDetailedPattern(rest);
-                // on remplace / insère
-                syllables.set(0, new Syllable(syl1, pat1));
-                syllables.add(1, new Syllable(syl2, pat2));
-            }
-        }
 
-        return syllables;
+            // 4. simple caractère
+            out.add(String.valueOf(ch));
+            i++;
+        }
+        return out;
     }
 
-    /**
-     * Tokenise la chaîne IPA en tenant compte des digrammes et des diacritiques.
-     * On tente d'abord d'identifier un digramme (ex. "ch", "sh", "ny"), sinon on traite caractère par caractère.
-     *
-     * @param ipaWord La chaîne IPA à tokeniser.
-     * @return Une liste de tokens représentant les unités phonémiques.
-     */
-    static List<String> tokenizeIPAWord(String ipaWord) {
-        List<String> tokens = new ArrayList<>();
-        int pos = 0;
-        while (pos < ipaWord.length()) {
-            boolean foundDigram = false;
-            if (pos < ipaWord.length() - 1) {
-                String twoChar = ipaWord.substring(pos, pos + 2).toLowerCase();
-                if (IPA_DIGRAMS.contains(twoChar)) {
-                    tokens.add(ipaWord.substring(pos, pos + 2));
-                    pos += 2;
-                    foundDigram = true;
-                }
-            }
-            if (foundDigram) continue;
+    /* ----------  SYLLABIFICATION  ---------- */
 
-            char ch = ipaWord.charAt(pos);
-            if (isDiacritic(ch)) {
-                if (!tokens.isEmpty()) {
-                    String prev = tokens.removeLast();
-                    tokens.add(prev + ch);
-                } else {
-                    tokens.add(String.valueOf(ch));
+    private static List<Syllable> syllabify(List<String> tokens) {
+        List<Syllable> sylls = new ArrayList<>();
+        List<String> onset = new ArrayList<>();
+        List<String> nucleus = new ArrayList<>();
+        List<String> coda = new ArrayList<>();
+
+        int idx = 0;
+        while (idx < tokens.size()) {
+            String t = tokens.get(idx);
+
+            if (isVowelToken(t)) {
+                if (nucleus.isEmpty()) {        // première voyelle
+                    nucleus.add(t);
+                } else {                       // deuxième voyelle => test glide/dipht.
+                    if (isGlide(t) && sameHarmonySet(nucleus.getLast(), t))
+                        nucleus.add(t);        // noyau élargi
+                    else {                     // nouvelle syllabe
+                        addSyllable(sylls, onset, nucleus, coda);
+                        onset.clear();
+                        nucleus.clear();
+                        coda.clear();
+                        nucleus.add(t);
+                    }
                 }
-            } else {
-                tokens.add(String.valueOf(ch));
+            } else { // consonne
+                if (nucleus.isEmpty()) onset.add(t);
+                else coda.add(t);
             }
-            pos++;
+            idx++;
         }
-        return tokens;
+        addSyllable(sylls, onset, nucleus, coda);
+        return sylls;
     }
 
-    /**
-     * Concatène une liste de tokens en une seule chaîne.
-     */
-    private static String joinTokens(List<String> tokens) {
+    private static void addSyllable(List<Syllable> list,
+                                    List<String> onset, List<String> nucleus, List<String> coda) {
+        if (nucleus.isEmpty()) return; // sécurité
+
+        // règle NOCODA + max-onset
+        if (coda.size() > 1 || (coda.size() == 1 && !LEGAL_CODA.contains(coda.getFirst()))) {
+            onset.addAll(0, coda);
+            coda.clear();
+        }  // une seule consonne candidate, rien à faire
+
+
+        List<String> sylTokens = new ArrayList<>();
+        sylTokens.addAll(onset);
+        sylTokens.addAll(nucleus);
+        sylTokens.addAll(coda);
+
+        list.add(new Syllable(join(sylTokens), computePattern(sylTokens)));
+    }
+
+    /* ----------  PATTERN  ---------- */
+
+    private static String computePattern(List<String> tokens) {
         StringBuilder sb = new StringBuilder();
-        for (String token : tokens) {
-            sb.append(token);
+        for (int i = 0; i < tokens.size(); i++) {
+            if (i > 0) sb.append("-");
+            sb.append(tokenPattern(tokens.get(i)));
         }
         return sb.toString();
     }
 
-    /**
-     * Calcule un pattern détaillé à partir d'une liste de tokens.
-     * Pour chaque token, récupère la chaîne de catégories depuis IPAConfig, la découpe par virgule,
-     * mappe chaque catégorie à une abréviation, puis joint ces abréviations par un slash.
-     * Le pattern de la syllabe est ensuite la concaténation des patterns de chaque token, séparés par des tirets.
-     *
-     * @param tokens La liste de tokens constituant la syllabe.
-     * @return Le pattern détaillé sous forme de chaîne.
-     */
-    private static String computeDetailedPattern(List<String> tokens) {
-        StringBuilder pattern = new StringBuilder();
-        boolean firstToken = true;
-        for (String token : tokens) {
-            String baseToken = token.replaceAll("\\p{M}", "").toLowerCase();
-            String categoryString = IPAConfig.getCategory(IPAConfig.getLetterFromIPA(baseToken));
-            String tokenPattern;
-            if (categoryString != null && !categoryString.isEmpty()) {
-                String[] categories = categoryString.split(",");
-                StringBuilder catAbbrev = new StringBuilder();
-                boolean firstCat = true;
-                for (String cat : categories) {
-                    String trimmedCat = cat.trim();
-                    String abbr = mapCategoryToAbbreviation(trimmedCat);
-                    if (!firstCat) {
-                        catAbbrev.append("/");
-                    } else {
-                        firstCat = false;
-                    }
-                    catAbbrev.append(abbr);
-                }
-                tokenPattern = catAbbrev.toString();
-            } else {
-                tokenPattern = "X";
-            }
-            if (!firstToken) {
-                pattern.append("-");
-            } else {
-                firstToken = false;
-            }
-            pattern.append(tokenPattern);
+    private static String tokenPattern(String tok) {
+        String base = Normalizer.normalize(tok, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase();
+        String cat = IPAConfig.getCategory(IPAConfig.getLetterFromIPA(base));
+        if (cat == null) return "X";
+        String[] cats = cat.split(",");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < cats.length; i++) {
+            if (i > 0) sb.append("/");
+            sb.append(AbbreviationConfig.getOrDefault(cats[i].trim(), "0"));
         }
-        return pattern.toString();
+        if (tok.contains("ː") || (base.length() == 2 && base.charAt(0) == base.charAt(1)))
+            sb.append("*"); // voyelle longue
+        return sb.toString();
     }
 
-    /**
-     * Mappe une catégorie phonétique à une abréviation.
-     * La méthode prend en compte plusieurs catégories possibles telles que "vowel", "plosive", "nasal",
-     * "fricative", "affricate", "approximant", "trill", "flap", "glottal", "liquid", "alveolar",
-     * "labiodental", "labial", "velar", "palatal", "uvular", "pharyngeal", "central", "rounded", etc.
-     *
-     * @param category La catégorie à mapper.
-     * @return L'abréviation correspondante.
-     */
-    private static String mapCategoryToAbbreviation(String category) {
-        String abbreviation = AbbreviationConfig.get(category.toLowerCase().trim());
-        return abbreviation != null ? abbreviation : "0";
+    /* ----------  HELPERS  ---------- */
+
+    private static boolean isGlide(String t) {
+        return t.equalsIgnoreCase("w") || t.equalsIgnoreCase("j");
     }
 
-    /**
-     * Détermine le nombre de tokens à affecter à la coda à partir d'un cluster de tokens consonantiques.
-     * On teste divers splits afin de laisser un onset légal (0 à 2 tokens) pour la syllabe suivante.
-     *
-     * @param clusterTokens La liste des tokens du cluster.
-     * @return Le nombre de tokens à affecter à la coda.
-     */
-    private static int determineSplit(List<String> clusterTokens) {
-        for (int split = 0; split <= clusterTokens.size(); split++) {
-            List<String> onsetCandidate = clusterTokens.subList(split, clusterTokens.size());
-            if (isLegalOnsetTokens(onsetCandidate)) {
-                return split;
-            }
-        }
-        return 0;
+    private static boolean sameHarmonySet(String vowel, String glide) {
+        // simplification : renvoie true si glide = w après /o u ɔ ʊ/  ou j après /i ɪ e ɛ/.
+        String v = vowel.toLowerCase();
+        return ("wj".contains(glide.toLowerCase()) &&
+                (("wu".contains(glide.toLowerCase()) && "oouɔʊ".contains(v)) ||
+                        ("j".equalsIgnoreCase(glide) && "ieɪeɛ".contains(v))));
     }
 
-    /**
-     * Vérifie si une liste de tokens constitue un onset légal.
-     * Ici, un onset est défini comme contenant au maximum 2 tokens.
-     *
-     * @param onsetTokens La liste candidate.
-     * @return true si légal, false sinon.
-     */
-    private static boolean isLegalOnsetTokens(List<String> onsetTokens) {
-        return onsetTokens.size() <= 2;
+    private static boolean isVowelChar(char ch) {
+        return "aeiouɨɛɔʊɪ".indexOf(ch) >= 0;
     }
 
-    /**
-     * Vérifie si un token représente une voyelle en se basant sur sa catégorie dans IPA.properties.
-     *
-     * @param token Le token à tester.
-     * @return true si le token est catégorisé comme "vowel", false sinon.
-     */
-    private static boolean isVowelToken(String token) {
-        String baseToken = token.replaceAll("\\p{M}", "").toLowerCase();
-        String category = IPAConfig.getCategory(IPAConfig.getLetterFromIPA(baseToken));
-        return category != null && category.toLowerCase().contains("vowel");
+    private static boolean isVowelToken(String t) {
+        String base = t.replaceAll("\\p{M}", "").toLowerCase();
+        String cat = IPAConfig.getCategory(IPAConfig.getLetterFromIPA(base));
+        return cat != null && cat.contains("vowel");
     }
 
-    /**
-     * Vérifie si un token est une consonne, c'est-à-dire s'il n'est pas catégorisé comme "vowel".
-     *
-     * @param token Le token à tester.
-     * @return true si considéré comme consonantique, false sinon.
-     */
-    private static boolean isConsonantToken(String token) {
-        String baseToken = token.replaceAll("\\p{M}", "").toLowerCase();
-        String category = IPAConfig.getCategory(IPAConfig.getLetterFromIPA(baseToken));
-        return category == null || !category.toLowerCase().contains("vowel");
+    private static boolean isDiacritic(char c) {
+        int type = Character.getType(c);
+        return type == Character.NON_SPACING_MARK ||
+                type == Character.COMBINING_SPACING_MARK ||
+                type == Character.ENCLOSING_MARK;
     }
 
-    /**
-     * Vérifie si un caractère est un diacritique.
-     * On prend Mn, Mc et Me.
-     */
-    private static boolean isDiacritic(char ch) {
-        int type = Character.getType(ch);
-        return type == Character.NON_SPACING_MARK    // Mn
-                || type == Character.COMBINING_SPACING_MARK  // Mc
-                || type == Character.ENCLOSING_MARK;    // Me
+    private static String join(List<String> toks) {
+        return String.join("", toks);
     }
 }
