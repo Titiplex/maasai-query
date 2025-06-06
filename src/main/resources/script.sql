@@ -24,11 +24,13 @@ CREATE TABLE `Dialect`
 -- Table Vocabulary
 CREATE TABLE `Vocabulary`
 (
-    `id`        INT          NOT NULL AUTO_INCREMENT,
-    `entry`     VARCHAR(255) NOT NULL,
-    `ipa`       VARCHAR(255) NOT NULL,
-    `syllables` TEXT NOT NULL,
-    `homonymIndex` INT NOT NULL DEFAULT 1,
+    `id`           INT          NOT NULL AUTO_INCREMENT,
+    `entry`        VARCHAR(255) NOT NULL,
+    `ipa`          VARCHAR(255) NOT NULL,
+    `syllables`    TEXT         NOT NULL,
+    `syll_count`   INT                   DEFAULT 0,
+    `syll_pattern` VARCHAR(255),
+    `homonymIndex` INT          NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -176,8 +178,8 @@ CREATE TABLE `MeaningDialect`
 -- Table for VocabularyDialect (liaison Vocabulary ⇄ Dialect)
 CREATE TABLE `VocabularyDialect`
 (
-    `vocabularyId`     INT NOT NULL,
-    `dialectId` INT NOT NULL,
+    `vocabularyId` INT NOT NULL,
+    `dialectId`    INT NOT NULL,
     PRIMARY KEY (`vocabularyId`, `dialectId`),
     INDEX `idx_vocdial_voc` (`vocabularyId`),
     INDEX `idx_vocdial_dial` (`dialectId`),
@@ -187,5 +189,55 @@ CREATE TABLE `VocabularyDialect`
     CONSTRAINT `fk_vocdial_dialect`
         FOREIGN KEY (`dialectId`) REFERENCES `Dialect` (`id`)
             ON DELETE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+-- Table Phoneme
+CREATE TABLE Phoneme
+(
+    id   INT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(10) NOT NULL,
+    ipa  VARCHAR(10) NOT NULL
+) DEFAULT CHARSET = utf8mb4;
+
+-- Table Category
+CREATE TABLE Category
+(
+    id   INT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    abbr VARCHAR(10)
+) DEFAULT CHARSET = utf8mb4;
+
+-- Table de jointure PhonemeCategory
+CREATE TABLE PhonemeCategory
+(
+    phoneme_id  INT NOT NULL,
+    category_id INT NOT NULL,
+    PRIMARY KEY (phoneme_id, category_id),
+    FOREIGN KEY (phoneme_id) REFERENCES Phoneme (id),
+    FOREIGN KEY (category_id) REFERENCES Category (id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+-- Table VocabularyPhoneme
+CREATE TABLE VocabularyPhoneme
+(
+    id            INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    vocabulary_id INT NOT NULL,
+    phoneme_id    INT NOT NULL,
+    position      INT NOT NULL,
+    FOREIGN KEY (vocabulary_id) REFERENCES Vocabulary (id) ON DELETE CASCADE,
+    FOREIGN KEY (phoneme_id) REFERENCES Phoneme (id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+-- Table VocabularyPhonemeCategory
+CREATE TABLE VocabularyPhonemeCategory
+(
+    vocab_phoneme_id INT NOT NULL,
+    category_id      INT NOT NULL,
+    PRIMARY KEY (vocab_phoneme_id, category_id),
+    FOREIGN KEY (vocab_phoneme_id) REFERENCES VocabularyPhoneme (id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES Category (id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
