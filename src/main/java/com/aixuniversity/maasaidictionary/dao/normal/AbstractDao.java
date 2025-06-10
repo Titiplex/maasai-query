@@ -2,8 +2,8 @@ package main.java.com.aixuniversity.maasaidictionary.dao.normal;
 
 import main.java.com.aixuniversity.maasaidictionary.config.DaoConfig;
 import main.java.com.aixuniversity.maasaidictionary.config.SqlStringConfig;
-import main.java.com.aixuniversity.maasaidictionary.dao.utils.DatabaseHelper;
 import main.java.com.aixuniversity.maasaidictionary.dao.utils.DaoInterface;
+import main.java.com.aixuniversity.maasaidictionary.dao.utils.DatabaseHelper;
 import main.java.com.aixuniversity.maasaidictionary.model.AbstractModel;
 
 import java.lang.reflect.InvocationTargetException;
@@ -190,14 +190,12 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
             case "string":
                 stmt.setString(index, (value == null) ? null : value.toString());
                 break;
-            // etc., ajoutez cases pour Date, Boolean...
             default:
                 // fallback
                 stmt.setObject(index, value);
                 break;
         }
     }
-
 
     private void setProperty(T instance, String property, Object value)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {

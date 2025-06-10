@@ -22,9 +22,11 @@ public abstract class AbstractLinkTableDao<T extends AbstractModel> implements L
 
     /**
      * Inserts a row (first -> second).
+     *
+     * @return void
      */
     @Override
-    public void insertLink(Integer firstId, Integer secondId) throws SQLException {
+    public Object insertLink(Integer firstId, Integer secondId, Object... args) throws SQLException {
         String baseQuery = SqlStringConfig.getInsertionString(getLinkTableKey());
         String query = baseQuery.replaceFirst("insert\\s+into", "insert ignore into");
         Connection conn = DatabaseHelper.getConnection();
@@ -34,6 +36,7 @@ public abstract class AbstractLinkTableDao<T extends AbstractModel> implements L
             ps.setInt(2, secondId);
             ps.executeUpdate();
         }
+        return void.class;
     }
 
     /**
@@ -90,6 +93,7 @@ public abstract class AbstractLinkTableDao<T extends AbstractModel> implements L
         return entities;
     }
 
+    // TODO
     /**
      * Abstract hook: how do we fetch the actual object from an ID?
      */

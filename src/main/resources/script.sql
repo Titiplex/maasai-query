@@ -214,20 +214,31 @@ CREATE TABLE PhonemeCategory
     phoneme_id  INT NOT NULL,
     category_id INT NOT NULL,
     PRIMARY KEY (phoneme_id, category_id),
-    FOREIGN KEY (phoneme_id) REFERENCES Phoneme (id),
-    FOREIGN KEY (category_id) REFERENCES Category (id)
+    INDEX `idx_phoncat_phon` (`phoneme_id`),
+    INDEX `idx_phoncat_cat` (`category_id`),
+    CONSTRAINT `fk_phoncat_phon`
+        FOREIGN KEY (`phoneme_id`) REFERENCES `Phoneme` (`id`)
+            ON DELETE CASCADE,
+    CONSTRAINT `fk_phoncat_cat`
+        FOREIGN KEY (`category_id`) REFERENCES `Category` (`id`)
+            ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- Table VocabularyPhoneme
 CREATE TABLE VocabularyPhoneme
 (
-    id            INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    vocabulary_id INT NOT NULL,
-    phoneme_id    INT NOT NULL,
-    position      INT NOT NULL,
-    FOREIGN KEY (vocabulary_id) REFERENCES Vocabulary (id) ON DELETE CASCADE,
-    FOREIGN KEY (phoneme_id) REFERENCES Phoneme (id)
+    id           INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    vocabularyId INT NOT NULL,
+    phonemeId    INT NOT NULL,
+    position     INT NOT NULL,
+    INDEX `idx_vocphon_voc` (`vocabularyId`),
+    INDEX `idx_vocphon_phon` (`phonemeId`),
+    CONSTRAINT `fk_vocphon_vocab`
+        FOREIGN KEY (`vocabularyId`) REFERENCES `Vocabulary` (`id`)
+            ON DELETE CASCADE,
+    CONSTRAINT `fk_vocphon_phon`
+        FOREIGN KEY (`phonemeId`) REFERENCES `Phoneme` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 

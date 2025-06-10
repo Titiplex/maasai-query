@@ -45,6 +45,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="guava-31.1-jre" level="project" />
+    <orderEntry type="library" name="fastutil-8.5.15" level="project"/>
     <orderEntry type="library" name="javassist-3.29.2-GA" level="project" />
     <orderEntry type="library" name="reflections-0.10.2" level="project" />
     <orderEntry type="library" name="mariadb-java-client-3.5.3" level="project" />

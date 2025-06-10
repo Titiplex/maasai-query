@@ -17,7 +17,7 @@ import java.util.Set;
  * – support des voyelles longues (ː ou double lettre)
  * – prise en compte des glides et des prénasalisées
  */
-public final class SyllableExtractor {
+public abstract class SyllableExtractor {
 
     /* ----------  SEGMENTS  ---------- */
     // TODO reindexer les properties pour récupérer legal/pas

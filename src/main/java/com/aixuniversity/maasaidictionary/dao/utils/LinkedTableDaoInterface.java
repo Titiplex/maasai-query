@@ -10,8 +10,9 @@ public interface LinkedTableDaoInterface<A, B> {
      *
      * @param firstId  l'ID de la première entité (ex: vocabulary_id)
      * @param secondId l'ID de la seconde entité (ex: linked_vocabulary_id)
+     * @param args     des arguments éventuels
      */
-    void insertLink(A firstId, B secondId) throws SQLException;
+    Object insertLink(A firstId, B secondId, Object... args) throws SQLException;
 
     /**
      * Supprime une liaison dans la table pivot.

@@ -74,7 +74,7 @@ public abstract class ImportService {
         }
     }
 
-    public static void main (String[] args) {
+    public static void main(String[] args) {
         String baseUrl = "https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/";
         System.out.println(ImportService.importVocabulary(HtmlParser.parseAll(baseUrl)));
     }
