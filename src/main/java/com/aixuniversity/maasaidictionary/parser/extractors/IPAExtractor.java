@@ -6,6 +6,8 @@ import main.java.com.aixuniversity.maasaidictionary.config.IPAConfig;
  * Classe qui contient des méthodes pour parser une chaîne d'entrée en IPA.
  * Ce parser intègre la gestion des digrammes, des diacritiques et le traitement spécifique des particules.
  */
+
+// TODO manage tones
 public abstract class IPAExtractor {
     /**
      * Extrait la chaîne IPA correspondant au mot d'entrée.

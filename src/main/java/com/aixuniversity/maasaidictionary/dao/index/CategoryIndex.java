@@ -49,6 +49,14 @@ public final class CategoryIndex implements IndexInterface<Category> {
     }
 
     @Override
+    public IntArrayList idsFor(Token categoryId) {
+        return switch (categoryId) {
+            case Token.IntegerToken st -> cat2Ids.getOrDefault(st.value().intValue(), new IntArrayList());
+            case Token.StringToken _ -> throw new IllegalArgumentException("Token must be a String");
+        };
+    }
+
+    @Override
     public Map<Category, Integer> index(AbstractDao<Category> dao) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException, SQLException {
         return IndexInterface.super.index(dao);
     }
@@ -56,6 +64,14 @@ public final class CategoryIndex implements IndexInterface<Category> {
     @Override
     public int frequency(Category category) {
         return freq.getOrDefault(category.getId(), 0);
+    }
+
+    @Override
+    public int frequency(Token category) {
+        return switch (category) {
+            case Token.IntegerToken st -> freq.getOrDefault(st.value().intValue(), 0);
+            case Token.StringToken _ -> throw new IllegalArgumentException("Token must be a String");
+        };
     }
 
     @Override

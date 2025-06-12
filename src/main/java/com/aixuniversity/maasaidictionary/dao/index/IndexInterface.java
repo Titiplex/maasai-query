@@ -4,7 +4,6 @@ package main.java.com.aixuniversity.maasaidictionary.dao.index;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import main.java.com.aixuniversity.maasaidictionary.dao.normal.AbstractDao;
 import main.java.com.aixuniversity.maasaidictionary.model.AbstractModel;
-import main.java.com.aixuniversity.maasaidictionary.model.Category;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,7 +18,6 @@ import java.util.Map;
  * Chaque nouvelle dimension de recherche (tonalités, traits prosodiques…) se code en < 50 lignes.
  */
 public interface IndexInterface<T extends AbstractModel> {
-
 
     int GENERIC_INTERFACE_INDEX = 0;
     int TYPE_ARGUMENT_INDEX = 0;
@@ -41,6 +39,21 @@ public interface IndexInterface<T extends AbstractModel> {
         return (Class<?>) typeArgument;
     }
 
+    sealed interface Token permits Token.StringToken, Token.IntegerToken {
+        record StringToken(String value) implements Token {
+        }
+
+        record IntegerToken(Integer value) implements Token {
+        }
+
+        static Token of(String value) {
+            return new StringToken(value);
+        }
+
+        static Token of(Integer value) {
+            return new IntegerToken(value);
+        }
+    }
 
     /**
      * @param token clef primaire (phonème, catégorie, tonalité…).
@@ -48,10 +61,14 @@ public interface IndexInterface<T extends AbstractModel> {
      */
     IntArrayList idsFor(T token);
 
+    IntArrayList idsFor(Token token);
+
     /**
      * Fréquence brute (sert à choisir le pivot).
      */
     int frequency(T token);
+
+    int frequency(Token token);
 
     void updateFrequency(Object token, IntArrayList list);
 

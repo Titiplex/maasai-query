@@ -11,11 +11,11 @@ import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
 import java.sql.SQLException;
 import java.util.List;
 
-public final class IPAIndex implements IndexInterface<Phoneme> {
+public final class IpaIndex implements IndexInterface<Phoneme> {
     private final Object2ObjectOpenHashMap<String, IntArrayList> map = new Object2ObjectOpenHashMap<>();
     private final Object2IntMap<String> freq = new Object2IntOpenHashMap<>();
 
-    public IPAIndex(VocabularyDao vocabDao) throws SQLException {
+    public IpaIndex(VocabularyDao vocabDao) throws SQLException {
         List<Vocabulary> all = vocabDao.getAll(); // méthode qui retourne id + ipa
         for (Vocabulary v : all) {
             int id = v.getId();
@@ -32,8 +32,24 @@ public final class IPAIndex implements IndexInterface<Phoneme> {
     }
 
     @Override
+    public IntArrayList idsFor(Token phonemeId) {
+        return switch (phonemeId) {
+            case Token.StringToken st -> map.getOrDefault(st.value(), new IntArrayList());
+            case Token.IntegerToken _ -> throw new IllegalArgumentException("Token must be a String");
+        };
+    }
+
+    @Override
     public int frequency(Phoneme phoneme) {
         return freq.getInt(phoneme.getIpa());
+    }
+
+    @Override
+    public int frequency(Token token) {
+        return switch (token) {
+            case Token.StringToken st -> freq.getInt(st.value());
+            case Token.IntegerToken _ -> throw new IllegalArgumentException("Token must be a String");
+        };
     }
 
     @Override

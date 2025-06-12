@@ -1,5 +1,6 @@
 package main.java.com.aixuniversity.maasaidictionary.dao.normal;
 
+import main.java.com.aixuniversity.maasaidictionary.config.AbbreviationConfig;
 import main.java.com.aixuniversity.maasaidictionary.config.DaoConfig;
 import main.java.com.aixuniversity.maasaidictionary.config.SqlStringConfig;
 import main.java.com.aixuniversity.maasaidictionary.dao.utils.DaoInterface;
@@ -61,6 +62,22 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
             return buildEntityFromResultSet(rs);
         }
         return null;
+    }
+
+    public Integer searchIdOfUniqueElement(Object element, String columnKey) throws SQLException {
+        String query = SqlStringConfig.getSelectionStringSpecificWhereSpecific(getEntityKey(), 0, DaoConfig.getColumns(getEntityKey()).indexOf(columnKey));
+        int result = 0;
+        Connection conn = DatabaseHelper.getConnection();
+        PreparedStatement ps = conn.prepareStatement(query);
+
+        ps.setObject(1, element);
+
+        ResultSet rs = ps.executeQuery();
+        if (!rs.next() || rs.getFetchSize() != 1) {
+            throw new IllegalArgumentException("Multiple or no ids for element " + element.toString() + " in column " + columnKey);
+        }
+
+        return (rs.getInt(DaoConfig.getColumnName(getEntityKey(), DaoConfig.getColumns(getEntityKey()).get(1))));
     }
 
     @Override
