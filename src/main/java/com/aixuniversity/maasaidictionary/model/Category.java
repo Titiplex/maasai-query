@@ -1,5 +1,9 @@
 package main.java.com.aixuniversity.maasaidictionary.model;
 
+import main.java.com.aixuniversity.maasaidictionary.config.AbbreviationConfig;
+import main.java.com.aixuniversity.maasaidictionary.dao.normal.CategoryDao;
+
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -14,6 +18,33 @@ public class Category extends AbstractModel {
         this.name = name;
         this.abbr = abbr;
         addCategory(this);
+    }
+
+    public static Category getOrCreate(String abbr, CategoryDao cDao) throws SQLException {
+        if (abbr == null || abbr.isEmpty()) {
+            return null;
+        }
+
+        Category existing = getCategory(abbr);
+        if (existing != null) {
+            return existing;
+        }
+
+        String name = AbbreviationConfig.getFromAbbreviation(abbr);
+        if (name == null) name = abbr;
+
+        synchronized (categories) {  // Thread safety
+            // Double-check in case another thread created it
+            existing = getCategory(abbr);
+            if (existing != null) {
+                return existing;
+            }
+
+            Category cat = new Category(name, abbr);
+            cat.setId(cDao.insert(cat));
+            addCategory(cat);
+            return cat;
+        }
     }
 
     public String getName() {

@@ -1,61 +1,39 @@
+// dao/index/IpaIndex.java
 package main.java.com.aixuniversity.maasaidictionary.dao.index;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import main.java.com.aixuniversity.maasaidictionary.dao.normal.VocabularyDao;
-import main.java.com.aixuniversity.maasaidictionary.model.Phoneme;
 import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
 
 import java.sql.SQLException;
 import java.util.List;
 
-public final class IpaIndex implements IndexInterface<Phoneme> {
-    private final Object2ObjectOpenHashMap<String, IntArrayList> map = new Object2ObjectOpenHashMap<>();
-    private final Object2IntMap<String> freq = new Object2IntOpenHashMap<>();
+public final class IpaIndex implements SearchIndex<String> {
+    private final Object2ObjectOpenHashMap<String, IntArrayList> posting = new Object2ObjectOpenHashMap<>();
+    private final Object2IntOpenHashMap<String> freq = new Object2IntOpenHashMap<>();
 
     public IpaIndex(VocabularyDao vocabDao) throws SQLException {
-        List<Vocabulary> all = vocabDao.getAll(); // méthode qui retourne id + ipa
+        List<Vocabulary> all = vocabDao.getAll();
         for (Vocabulary v : all) {
             int id = v.getId();
-            for (String tok : v.getIpa().split("\\s+")) {
-                map.computeIfAbsent(tok, k -> new IntArrayList()).add(id);
+            for (String tok : v.getIpa().trim().split("\\s+")) {
+                posting.computeIfAbsent(tok, k -> new IntArrayList()).add(id);
             }
         }
-        map.forEach(this::updateFrequency);
+        posting.forEach((k, l) -> freq.put(k, l.size()));
     }
 
-    @Override
-    public IntArrayList idsFor(Phoneme phoneme) {
-        return map.getOrDefault(phoneme.getIpa(), new IntArrayList());
+    public IntArrayList idsFor(String token) {
+        return posting.getOrDefault(token, new IntArrayList());
     }
 
-    @Override
-    public IntArrayList idsFor(Token phonemeId) {
-        return switch (phonemeId) {
-            case Token.StringToken st -> map.getOrDefault(st.value(), new IntArrayList());
-            case Token.IntegerToken _ -> throw new IllegalArgumentException("Token must be a String");
-        };
+    public Object2ObjectOpenHashMap<String, IntArrayList> getPosting() {
+        return posting;
     }
 
-    @Override
-    public int frequency(Phoneme phoneme) {
-        return freq.getInt(phoneme.getIpa());
-    }
-
-    @Override
-    public int frequency(Token token) {
-        return switch (token) {
-            case Token.StringToken st -> freq.getInt(st.value());
-            case Token.IntegerToken _ -> throw new IllegalArgumentException("Token must be a String");
-        };
-    }
-
-    @Override
-    public void updateFrequency(Object phoneme, IntArrayList list) {
-        if (phoneme != null && list != null) {
-            freq.put((String) phoneme, list.size());
-        }
+    public int frequency(String token) {
+        return freq.getOrDefault(token, 0);
     }
 }

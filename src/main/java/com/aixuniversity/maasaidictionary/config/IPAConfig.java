@@ -26,6 +26,7 @@ public abstract class IPAConfig {
         PROPS.clear();
         vowels = consonants = null;
         PropertiesLoader.load(RESOURCE, PROPS);
+        buildIPAMap();
     }
 
     /**
@@ -109,5 +110,20 @@ public abstract class IPAConfig {
 
     public static String getLetterFromIPA(String key) {
         return IPA_MAP.getOrDefault(key, null);
+    }
+
+    public static Collection<String> IpaSymbolsForCategory(String cat) {
+        List<String> list = new ArrayList<>();
+        for (String name : PROPS.stringPropertyNames()) {
+            if (name.endsWith(".category")) {
+                String sym = name.substring(0, name.length() - 9);
+                String cat2 = PROPS.getProperty(name);
+                if (cat2 != null && Arrays.stream(cat2.split(","))
+                        .anyMatch(s -> s.trim().equalsIgnoreCase(cat))) {
+                    list.add(get(sym));
+                }
+            }
+        }
+        return Collections.unmodifiableList(list);
     }
 }

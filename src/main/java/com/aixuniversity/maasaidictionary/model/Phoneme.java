@@ -1,7 +1,10 @@
 package main.java.com.aixuniversity.maasaidictionary.model;
 
+import main.java.com.aixuniversity.maasaidictionary.config.IPAConfig;
+import main.java.com.aixuniversity.maasaidictionary.dao.normal.PhonemeDao;
+
+import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 
@@ -15,6 +18,36 @@ public class Phoneme extends AbstractModel {
         this.code = code;
         this.ipa = ipa;
         addPhoneme(this);
+    }
+
+    public static Phoneme getOrCreateSQL(String tok, PhonemeDao pDao) throws SQLException {
+        if (tok == null || tok.isEmpty()) {
+            return null;
+        }
+
+        Phoneme existing = getPhoneme(tok);
+        if (existing != null) {
+            return existing;
+        }
+
+        String letter = IPAConfig.getLetterFromIPA(tok);
+
+        if (letter == null) {
+            letter = tok;
+        }
+
+        synchronized (phonemes) {  // Thread safety
+            // Double-check in case another thread created it
+            existing = getPhoneme(tok);
+            if (existing != null) {
+                return existing;
+            }
+
+            Phoneme phon = new Phoneme(letter, tok);
+            phon.setId(pDao.insert(phon));
+            addPhoneme(phon);
+            return phon;
+        }
     }
 
     public String getCode() {
@@ -37,12 +70,10 @@ public class Phoneme extends AbstractModel {
         return phonemes;
     }
 
-    public static boolean addPhoneme(Phoneme phoneme) {
+    public static void addPhoneme(Phoneme phoneme) {
         if (!phonemes.containsKey(phoneme.getIpa())) {
             phonemes.put(phoneme.getIpa(), phoneme);
-            return true;
         }
-        return false;
     }
 
     public static Phoneme getPhoneme(String ipa) {

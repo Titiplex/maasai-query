@@ -66,7 +66,6 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
 
     public Integer searchIdOfUniqueElement(Object element, String columnKey) throws SQLException {
         String query = SqlStringConfig.getSelectionStringSpecificWhereSpecific(getEntityKey(), 0, DaoConfig.getColumns(getEntityKey()).indexOf(columnKey));
-        int result = 0;
         Connection conn = DatabaseHelper.getConnection();
         PreparedStatement ps = conn.prepareStatement(query);
 
@@ -236,7 +235,6 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         }
     }
 
-    // Petit utilitaire
     private String capitalize(String s) {
         if (s == null || s.isEmpty()) return s;
         return s.substring(0, 1).toUpperCase() + s.substring(1);

@@ -31,7 +31,7 @@ public class Syllable {
 
     @Override
     public String toString() {
-        return "Syllable: " + text + " | Pattern: " + pattern;
+        return "Syllable: " + text + " | SyllablePattern: " + pattern;
     }
 
     /**

@@ -1,47 +1,53 @@
+// service/search/IpaSearcher.java
 package main.java.com.aixuniversity.maasaidictionary.service.search;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import main.java.com.aixuniversity.maasaidictionary.dao.index.IndexInterface;
 import main.java.com.aixuniversity.maasaidictionary.dao.index.IpaIndex;
 import main.java.com.aixuniversity.maasaidictionary.dao.normal.VocabularyDao;
-import main.java.com.aixuniversity.maasaidictionary.model.Phoneme;
 import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
+import java.util.regex.Pattern;
 
-public final class IpaSearcher {
+public final class IpaSearcher implements Searcher<String> {
     private final IpaIndex idx;
-    private final VocabularyDao vocabDao;
+    private final VocabularyDao dao;
 
-    public IpaSearcher(IpaIndex idx, VocabularyDao vocabDao) {
-        this.idx = idx;
-        this.vocabDao = vocabDao;
+    public IpaSearcher(IpaIndex index, VocabularyDao vocabularyDao) {
+        idx = index;
+        dao = vocabularyDao;
     }
 
-    public List<Vocabulary> search(List<String> tokens) throws SQLException {
-        String pivot = tokens.stream().min(Comparator.comparingInt(token -> idx.frequency(
-                IndexInterface.Token.of(token)
-        ))).orElseThrow();
-        IntArrayList cand = idx.idsFor(Objects.requireNonNull(Phoneme.getPhoneme(pivot)));
-        List<Vocabulary> res = new ArrayList<>();
+    public IpaSearcher() throws SQLException {
+        this.dao = new VocabularyDao();
+        this.idx = new IpaIndex(this.dao);
+    }
+
+    /**
+     * DSL rapide :
+     * # = frontière mot ; . = frontière syllabe ; ? = joker ; [a b] = set.
+     */
+    @Override
+    public List<Vocabulary> search(String query) throws SQLException {
+        Pattern p = Pattern.compile(QueryToRegex.translate(query));
+        // pivot = premier token littéral le plus rare
+        String pivot = QueryToRegex.pickPivot(query, idx::frequency);
+        if (pivot == null) pivot = ""; // cas full‑joker → pas de pivot
+        IntArrayList cand = pivot.isEmpty() ? collectAll() : idx.idsFor(pivot);
+        List<Vocabulary> out = new ArrayList<>();
         for (int id : cand) {
-            Vocabulary v = vocabDao.searchById(id);
-            if (v != null && contains(tokens, v.getIpa())) res.add(v);
+            Vocabulary v = dao.searchById(id);
+            if (v != null && p.matcher(v.getIpa()).find()) out.add(v);
         }
-        return res;
+        return out;
     }
 
-    private static boolean contains(List<String> pat, String ipa) {
-        String[] stream = ipa.split("\\s+");
-        outer:
-        for (int i = 0; i <= stream.length - pat.size(); i++) {
-            for (int j = 0; j < pat.size(); j++) if (!pat.get(j).equals(stream[i + j])) continue outer;
-            return true;
-        }
-        return false;
+    private IntArrayList collectAll() {
+        IntArrayList all = new IntArrayList();
+        idx.getPosting().values().forEach(all::addAll);  // expose un getter dans IpaIndex
+        return all;
     }
+
 }
