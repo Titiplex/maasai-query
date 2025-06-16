@@ -1,71 +1,68 @@
-// service/search/SearchService.java
+// Revised version of SearchService.java with unified hybrid handling
 package main.java.com.aixuniversity.maasaidictionary.service;
 
-import com.google.common.reflect.ClassPath;
 import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
-import main.java.com.aixuniversity.maasaidictionary.service.search.Searcher;
+import main.java.com.aixuniversity.maasaidictionary.service.search.IpaSearcher;
+import main.java.com.aixuniversity.maasaidictionary.service.search.SyllableSearcher;
 
-import java.io.IOException;
-import java.lang.reflect.Modifier;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
- * Orchestrateur : on enregistre dynamiquement des moteurs de recherche.
+ * Unified search service that dispatches to IPA or Syllable searchers,
+ * and performs hybrid analysis by intersecting both and validating structure.
  */
 public final class SearchService {
-    private static final Map<String, Searcher<?>> registry = new HashMap<>();
+    private static final IpaSearcher ipaSearcher;
+    private static final SyllableSearcher syllableSearcher;
 
-    public static List<Vocabulary> search(String raw) throws SQLException {
-        // TODO searching mixt instead of pure dichotomy
-        String type;
-        String q = raw;
-        int sep = raw.indexOf(':');
-        if (sep > 0 && sep < 6) {
-            type = raw.substring(0, sep).toLowerCase();
-            q = raw.substring(sep + 1);
-        } else if (raw.contains("|") || raw.contains("-")) type = "syll";
-            // else if (raw.matches(".*[\\u0300-\\u0302\\u02E5-\\u02E9].*")) type = "tone";
-        else type = "ipa";
-        return query(type, q);
-    }
-
-    public static void register() {
+    static {
         try {
-            findImplementations().forEach(classInfo -> {
-                try {
-                    Class<?> clazz = classInfo.load();
-                    Searcher<?> s = (Searcher<?>) clazz.getDeclaredConstructor().newInstance();
-                    registry.put(s.getClass().getSimpleName().toLowerCase(), s);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            ipaSearcher = new IpaSearcher();
+            syllableSearcher = new SyllableSearcher();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to initialize searchers", e);
         }
     }
 
-    private static Set<ClassPath.ClassInfo> findImplementations() throws IOException {
-        return ClassPath.from(ClassLoader.getSystemClassLoader())
-                .getAllClasses()
-                .stream()
-                .filter(classInfo -> {
-                    Class<?> clazz = classInfo.load();
-                    return Searcher.class.isAssignableFrom(clazz)
-                            && !Modifier.isInterface(clazz.getModifiers());
-                })
-                .collect(Collectors.toSet());
+    /**
+     * Main entry point for queries.
+     * Automatically detects hybrid, IPA, or syllabic search.
+     */
+    public static List<Vocabulary> search(String raw) throws SQLException {
+        String query = raw;
+        if (raw.contains(":")) {
+            int sep = raw.indexOf(":");
+            query = raw.substring(sep + 1);
+        }
+
+        boolean hasCategory = query.chars()
+                .anyMatch(c -> Character.isUpperCase(c) && c != 'I'); // crude heuristic for category
+        boolean hasLiteral = query.chars()
+                .anyMatch(c -> Character.isLowerCase(c) || "ɲŋʃʧʤɾʔ".indexOf(c) >= 0);
+
+        if (hasCategory && hasLiteral) {
+            return hybridSearch(query);
+        } else if (query.contains("|") || query.contains("-")) {
+            return syllableSearcher.search(query);
+        } else {
+            return ipaSearcher.search(query);
+        }
     }
 
-    @SuppressWarnings("unchecked")
-    private static <Q> List<Vocabulary> query(String name, Q q) throws SQLException {
-        Searcher<Q> s = (Searcher<Q>) registry.get(name);
-        if (s == null) throw new IllegalArgumentException("No searcher: " + name);
-        return s.search(q);
+    /**
+     * Hybrid search runs IPA search for performance, then structural validation.
+     */
+    private static List<Vocabulary> hybridSearch(String query) throws SQLException {
+        List<Vocabulary> ipaMatches = ipaSearcher.search(query);
+        List<Vocabulary> filtered = new ArrayList<>();
+
+        for (Vocabulary v : ipaMatches) {
+            if (syllableSearcher.validateHybrid(query, v.getSyllables())) {
+                filtered.add(v);
+            }
+        }
+        return filtered;
     }
 }
