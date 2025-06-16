@@ -3,11 +3,10 @@ package main.java.com.aixuniversity.maasaidictionary.service.tfidf;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import main.java.com.aixuniversity.maasaidictionary.dao.index.CategoryFlatIndex;
 import main.java.com.aixuniversity.maasaidictionary.dao.index.PhonemeFlatIndex;
-import main.java.com.aixuniversity.maasaidictionary.dao.normal.CategoryDao;
-import main.java.com.aixuniversity.maasaidictionary.dao.normal.PhonemeDao;
 import main.java.com.aixuniversity.maasaidictionary.dao.normal.VocabularyDao;
 import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
-import main.java.com.aixuniversity.maasaidictionary.service.search.*;
+import main.java.com.aixuniversity.maasaidictionary.service.search.HybridPattern;
+import main.java.com.aixuniversity.maasaidictionary.service.search.Token;
 import main.java.com.aixuniversity.maasaidictionary.service.search.tokens.*;
 
 import java.sql.SQLException;
@@ -19,8 +18,6 @@ import java.util.Set;
 public final class ApproximateSearcher {
     private final PhonemeFlatIndex phonFlat;
     private final CategoryFlatIndex catFlat;
-    private final PhonemeDao pDao = new PhonemeDao();
-    private final CategoryDao cDao = new CategoryDao();
     private final VocabularyDao vDao = new VocabularyDao();
 
     private final long totalTokens; // pré‑calcul : Σ freq(phon) + Σ freq(cat)
