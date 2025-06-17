@@ -38,9 +38,11 @@ public final class IndexingService {
                     for (int i = 0; i < toks.size(); i++) {
                         String tok = toks.get(i);
                         Phoneme ph = Phoneme.getOrCreateSQL(tok, pDao); // helper static que tu avais
+                        ph.addFreq();
                         int vpId = (int) vpDao.insertLink(v.getId(), ph.getId(), pos++);
                         for (String abbr : pat.get(i)) {
                             Category cat = Category.getOrCreate(abbr, cDao);
+                            cat.addFreq();
                             pcDao.insertLink(ph.getId(), cat.getId());
                             vpcDao.insertLink(vpId, cat.getId());
                         }

@@ -198,6 +198,7 @@ CREATE TABLE `Phoneme`
     `id`   INT         NOT NULL AUTO_INCREMENT,
     `code` VARCHAR(10) NOT NULL,
     `ipa`  VARCHAR(10) NOT NULL,
+    `freq` BIGINT DEFAULT 0,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4;
 
@@ -207,6 +208,7 @@ CREATE TABLE `Category`
     `id`   INT         NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(50) NOT NULL,
     `abbr` VARCHAR(10),
+    `freq` BIGINT DEFAULT 0,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4;
 
