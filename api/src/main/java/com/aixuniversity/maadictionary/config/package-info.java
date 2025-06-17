@@ -1,0 +1,1 @@
+package com.aixuniversity.maadictionary.config;
