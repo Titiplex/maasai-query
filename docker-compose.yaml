@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  db:
+    image: mariadb:lts           # binaire officiel maintenu par MariaDB :contentReference[oaicite:0]{index=0}
+    env_file: .env               # DB_* viennent d’ici
+    environment:
+      MARIADB_DATABASE: ${DATABASE}
+      MARIADB_USER: ${USER}
+      MARIADB_PASSWORD: ${PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${ROOT}
+    volumes:
+      - ./db/script.sql:/docker-entrypoint-initdb.d/01-init.sql   # exécution 1ʳᵉ fois :contentReference[oaicite:1]{index=1}
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "--silent" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [ maasai ]
+
+  api:
+    build: ./backend-java
+    depends_on:
+      db: { condition: service_healthy }
+    env_file: .env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/${DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${USER}
+      SPRING_DATASOURCE_PASSWORD: ${PASSWORD}
+    ports: [ "8080:8080" ]
+    networks: [ maasai ]
+
+  web:
+    build: ./frontend-php
+    depends_on: [ api ]
+    env_file: .env               # WEB_* ou API_URL si besoin
+    ports: [ "80:80" ]
+    networks: [ maasai ]
+
+networks: { maasai: { } }
+volumes: { mariadb_data: { } }
