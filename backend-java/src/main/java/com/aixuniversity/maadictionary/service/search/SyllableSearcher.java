@@ -1,16 +1,14 @@
-package com.aixuniversity.maadictionary.service.search;
+package main.java.com.aixuniversity.maasaidictionary.service.search;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import com.aixuniversity.maadictionary.dao.index.CategoryIndex;
-import com.aixuniversity.maadictionary.dao.normal.CategoryDao;
-import com.aixuniversity.maadictionary.dao.normal.VocabularyDao;
-import com.aixuniversity.maadictionary.model.Vocabulary;
+import main.java.com.aixuniversity.maasaidictionary.config.AbbreviationConfig;
+import main.java.com.aixuniversity.maasaidictionary.dao.index.CategoryIndex;
+import main.java.com.aixuniversity.maasaidictionary.dao.normal.CategoryDao;
+import main.java.com.aixuniversity.maasaidictionary.dao.normal.VocabularyDao;
+import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public final class SyllableSearcher implements Searcher<String> {
     private final CategoryIndex idx;
@@ -29,6 +27,9 @@ public final class SyllableSearcher implements Searcher<String> {
         this.vocabDao = new VocabularyDao();
     }
 
+    /**
+     * Searcher classique en mode purement syllabique.
+     */
     public List<Vocabulary> search(String pattern) throws SQLException {
         SyllablePattern spec = SyllablePattern.parse(pattern);
         Integer pivotId = Integer.valueOf(spec.labels().stream().min(Comparator.comparingInt(l -> {
@@ -47,6 +48,9 @@ public final class SyllableSearcher implements Searcher<String> {
         return res;
     }
 
+    /**
+     * Vérifie la correspondance exacte entre une structure syllabique et une forme.
+     */
     private static boolean matches(SyllablePattern spec, String raw) {
         String[] syll = raw.split("\\|", -1);
         if (syll.length != spec.syllables().size()) return false;
@@ -57,6 +61,34 @@ public final class SyllableSearcher implements Searcher<String> {
             for (int p = 0; p < phon.length; p++) {
                 Set<String> have = Set.of(phon[p].split("/", -1));
                 if (!have.containsAll(want.get(p))) return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Vérifie structurellement un mot donné selon un motif mixte (IPA + caté).
+     */
+    public boolean validateHybrid(String query, String raw) {
+        String[] ipa = query.replaceAll("#", "")
+                .replaceAll("\\.", " ")
+                .split(" ");
+        String[] syll = raw.split("\\|", -1);
+        List<String> flatCatList = Arrays.stream(syll)
+                .flatMap(s -> Arrays.stream(s.split("-")))
+                .toList();
+        if (ipa.length != flatCatList.size()) return false;
+
+        for (int i = 0; i < ipa.length; i++) {
+            String q = ipa[i];
+            String form = flatCatList.get(i);
+            Set<String> have = Set.of(form.split("/"));
+            if (AbbreviationConfig.get(q) != null) {
+                // c’est une catégorie, on vérifie que le set contienne la bonne abréviation
+                if (!have.contains(q)) return false;
+            } else {
+                // sinon on vérifie que c’est bien le phonème exact
+                if (!have.contains("!" + q)) return false; // convention: !k = phonème k
             }
         }
         return true;

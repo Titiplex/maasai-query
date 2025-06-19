@@ -11,6 +11,8 @@ import java.util.Objects;
 public class Category extends AbstractModel {
 
     private static final Map<String, Category> categories = new HashMap<>();
+
+    private long freq = 0;
     private String name;
     private String abbr;
 
@@ -45,6 +47,18 @@ public class Category extends AbstractModel {
             addCategory(cat);
             return cat;
         }
+    }
+
+    public long getFreq() {
+        return 1 / this.freq;
+    }
+
+    public void addFreq() {
+        addFreq(1);
+    }
+
+    public void addFreq(int nb) {
+        this.freq += nb;
     }
 
     public String getName() {
