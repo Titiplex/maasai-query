@@ -119,12 +119,12 @@ public abstract class HtmlParser {
         for (List<Element> group : groupedEntries) {
             Element baseEntry = group.getFirst(); // lpLexEntryPara est toujours le premier
 
-            Element name = baseEntry.selectFirst(".lpLexEntryName");
-            Element partOfSpeech = baseEntry.selectFirst(".lpPartOfSpeech");
+            Element name = baseEntry.select(".lpLexEntryName").first();
+            Element partOfSpeech = baseEntry.select(".lpPartOfSpeech").first();
 
             Vocabulary vocabulary = new Vocabulary(name != null ? name.text() : "");
 
-            Element idx = baseEntry.selectFirst("sub > span.lpHomonymIndex");
+            Element idx = baseEntry.select("sub > span.lpHomonymIndex").first();
             if (idx != null) {
                 String rawIdx = idx.text().trim();
                 try {
@@ -138,9 +138,6 @@ public abstract class HtmlParser {
                 }
             }
 
-            // Stocker les miniHeadings et leurs paradigmes
-            Map<String, Element> miniHeadingsMap = new HashMap<>();
-
             // On traite tous les enfants de tous les éléments du groupe
             for (Element entry : group) {
                 Elements children = entry.children();
@@ -153,7 +150,10 @@ public abstract class HtmlParser {
                         if (i + 1 < children.size()) {
                             Element next = children.get(i + 1);
                             if (next.hasClass("lpParadigm")) {
-                                miniHeadingsMap.put(child.text(), next);
+                                Vocabulary linkedVocabulary = extractLinkedVocabulary(child, next);
+                                vocabulary.addLinkedVocabulary(linkedVocabulary);
+                                linkedVocabulary.addLinkedVocabulary(vocabulary);
+                                pageVocabulary.add(linkedVocabulary);
                             }
                         } else {
                             vocabulary.addDialect(extractDialects(child));
@@ -201,5 +201,20 @@ public abstract class HtmlParser {
             }
         }
         return dialect;
+    }
+
+    private static Vocabulary extractLinkedVocabulary(Element heading, Element paradigm) {
+        Vocabulary linkedVocabulary = new Vocabulary();
+
+        linkedVocabulary.addDialect(extractDialects(heading));
+        for(String element : heading.text().split(" ")) {
+            if(!element.isEmpty() && !(element.contains("[") || element.contains("]"))) {
+                linkedVocabulary.addPartOfSpeech(new PartOfSpeech(element.replaceAll("\\W+", "")));
+            }
+        }
+
+        linkedVocabulary.setEntry(paradigm.text());
+
+        return linkedVocabulary;
     }
 }
