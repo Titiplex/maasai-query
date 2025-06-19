@@ -1,6 +1,6 @@
 package com.aixuniversity.maadictionary.dao.join;
 
-import main.java.com.aixuniversity.maasaidictionary.model.Dialect;
+import com.aixuniversity.maadictionary.model.Dialect;
 
 public class ExampleDialectDao extends AbstractLinkTableDao<Dialect>{
     @Override

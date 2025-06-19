@@ -1,6 +1,6 @@
 package com.aixuniversity.maadictionary.dao.join;
 
-import main.java.com.aixuniversity.maasaidictionary.model.Category;
+import com.aixuniversity.maadictionary.model.Category;
 
 public class VocabularyPhonemeCategoryDao extends AbstractLinkTableDao<Category> {
     @Override

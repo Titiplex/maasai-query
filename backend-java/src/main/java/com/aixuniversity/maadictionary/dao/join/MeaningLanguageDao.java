@@ -1,6 +1,6 @@
 package com.aixuniversity.maadictionary.dao.join;
 
-import main.java.com.aixuniversity.maasaidictionary.model.Language;
+import com.aixuniversity.maadictionary.model.Language;
 
 public class MeaningLanguageDao extends AbstractLinkTableDao<Language> {
     @Override

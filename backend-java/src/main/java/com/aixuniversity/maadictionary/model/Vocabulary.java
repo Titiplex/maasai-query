@@ -178,6 +178,14 @@ public class Vocabulary extends AbstractModel {
         this.dialects.add(dialect);
     }
 
+    public void addLinkedVocabulary(Vocabulary vocabulary) {
+        if (this.linkedVocabularies == null) {
+            this.linkedVocabularies = new ArrayList<>();
+        }
+        if (this.linkedVocabularies.contains(vocabulary)) return;
+        this.linkedVocabularies.add(vocabulary);
+    }
+
     @Override
     public String toString() {
         StringBuilder string = new StringBuilder("Vocabulary {" +

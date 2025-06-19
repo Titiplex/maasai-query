@@ -1,6 +1,6 @@
 package com.aixuniversity.maadictionary.dao.join;
 
-import main.java.com.aixuniversity.maasaidictionary.model.PartOfSpeech;
+import com.aixuniversity.maadictionary.model.PartOfSpeech;
 
 public class PosLinkedDao extends AbstractLinkTableDao<PartOfSpeech> {
 

@@ -1,7 +1,7 @@
 package com.aixuniversity.maadictionary.dao.utils;
 
-import main.java.com.aixuniversity.maasaidictionary.dao.normal.AbstractDao;
-import main.java.com.aixuniversity.maasaidictionary.model.AbstractModel;
+import com.aixuniversity.maadictionary.dao.normal.AbstractDao;
+import com.aixuniversity.maadictionary.model.AbstractModel;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 

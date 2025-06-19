@@ -1,6 +1,6 @@
 package com.aixuniversity.maadictionary.dao.join;
 
-import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
+import com.aixuniversity.maadictionary.model.Vocabulary;
 
 public class VocabularyLinkedDao extends AbstractLinkTableDao<Vocabulary> {
 
