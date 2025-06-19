@@ -1,4 +1,4 @@
-package main.java.com.aixuniversity.maasaidictionary.dao.index;
+package com.aixuniversity.maadictionary.dao.index;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 

@@ -1,9 +1,9 @@
-package main.java.com.aixuniversity.maasaidictionary.dao.index;
+package com.aixuniversity.maadictionary.dao.index;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import main.java.com.aixuniversity.maasaidictionary.dao.utils.DatabaseHelper;
+import com.aixuniversity.maadictionary.dao.utils.DatabaseHelper;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

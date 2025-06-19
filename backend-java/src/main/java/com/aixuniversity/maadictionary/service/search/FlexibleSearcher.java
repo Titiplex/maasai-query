@@ -1,12 +1,13 @@
-package main.java.com.aixuniversity.maasaidictionary.service.search;
+package com.aixuniversity.maadictionary.service.search;
 
+import com.aixuniversity.maadictionary.service.search.tokens.Token;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import main.java.com.aixuniversity.maasaidictionary.dao.index.CategoryFlatIndex;
-import main.java.com.aixuniversity.maasaidictionary.dao.index.CategoryPosIndex;
-import main.java.com.aixuniversity.maasaidictionary.dao.index.PhonemeFlatIndex;
-import main.java.com.aixuniversity.maasaidictionary.dao.index.PhonemePosIndex;
-import main.java.com.aixuniversity.maasaidictionary.dao.normal.VocabularyDao;
-import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
+import com.aixuniversity.maadictionary.dao.index.CategoryFlatIndex;
+import com.aixuniversity.maadictionary.dao.index.CategoryPosIndex;
+import com.aixuniversity.maadictionary.dao.index.PhonemeFlatIndex;
+import com.aixuniversity.maadictionary.dao.index.PhonemePosIndex;
+import com.aixuniversity.maadictionary.dao.normal.VocabularyDao;
+import com.aixuniversity.maadictionary.model.Vocabulary;
 
 import java.sql.SQLException;
 import java.util.ArrayList;

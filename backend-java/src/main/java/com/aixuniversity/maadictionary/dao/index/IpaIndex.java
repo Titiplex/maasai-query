@@ -4,8 +4,8 @@ package com.aixuniversity.maadictionary.dao.index;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import main.java.com.aixuniversity.maasaidictionary.dao.normal.VocabularyDao;
-import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
+import com.aixuniversity.maadictionary.dao.normal.VocabularyDao;
+import com.aixuniversity.maadictionary.model.Vocabulary;
 
 import java.sql.SQLException;
 import java.util.List;

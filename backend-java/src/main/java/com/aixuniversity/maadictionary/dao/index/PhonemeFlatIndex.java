@@ -1,7 +1,7 @@
-package main.java.com.aixuniversity.maasaidictionary.dao.index;
+package com.aixuniversity.maadictionary.dao.index;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import main.java.com.aixuniversity.maasaidictionary.dao.utils.DatabaseHelper;
+import com.aixuniversity.maadictionary.dao.utils.DatabaseHelper;
 
 import java.sql.SQLException;
 import java.util.Optional;

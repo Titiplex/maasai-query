@@ -1,6 +1,4 @@
-package main.java.com.aixuniversity.maasaidictionary.service.search.tokens;
-
-import main.java.com.aixuniversity.maasaidictionary.service.search.Token;
+package com.aixuniversity.maadictionary.service.search.tokens;
 
 public record TokPhonFlat(int phon) implements Token {
     public byte sylIdx() {

@@ -2,7 +2,7 @@
 package com.aixuniversity.maadictionary.dao.index;
 
 import it.unimi.dsi.fastutil.ints.*;
-import main.java.com.aixuniversity.maasaidictionary.dao.utils.DatabaseHelper;
+import com.aixuniversity.maadictionary.dao.utils.DatabaseHelper;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

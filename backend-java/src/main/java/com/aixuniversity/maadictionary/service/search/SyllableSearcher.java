@@ -1,11 +1,11 @@
-package main.java.com.aixuniversity.maasaidictionary.service.search;
+package com.aixuniversity.maadictionary.service.search;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import main.java.com.aixuniversity.maasaidictionary.config.AbbreviationConfig;
-import main.java.com.aixuniversity.maasaidictionary.dao.index.CategoryIndex;
-import main.java.com.aixuniversity.maasaidictionary.dao.normal.CategoryDao;
-import main.java.com.aixuniversity.maasaidictionary.dao.normal.VocabularyDao;
-import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
+import com.aixuniversity.maadictionary.config.AbbreviationConfig;
+import com.aixuniversity.maadictionary.dao.index.CategoryIndex;
+import com.aixuniversity.maadictionary.dao.normal.CategoryDao;
+import com.aixuniversity.maadictionary.dao.normal.VocabularyDao;
+import com.aixuniversity.maadictionary.model.Vocabulary;
 
 import java.sql.SQLException;
 import java.util.*;

@@ -2,7 +2,6 @@
 package com.aixuniversity.maadictionary.service.search;
 
 import com.aixuniversity.maadictionary.model.Vocabulary;
-import com.aixuniversity.maadictionary.service.SearchService;
 
 import java.sql.SQLException;
 import java.util.List;

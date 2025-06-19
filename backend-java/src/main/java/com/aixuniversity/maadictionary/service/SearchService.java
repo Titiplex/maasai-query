@@ -1,9 +1,9 @@
-package main.java.com.aixuniversity.maasaidictionary.service;
+package com.aixuniversity.maadictionary.service;
 
-import main.java.com.aixuniversity.maasaidictionary.model.Vocabulary;
-import main.java.com.aixuniversity.maasaidictionary.service.search.FlexibleSearcher;
-import main.java.com.aixuniversity.maasaidictionary.service.tfidf.ApproximateSearcher;
-import main.java.com.aixuniversity.maasaidictionary.service.tfidf.ScoredResult;
+import com.aixuniversity.maadictionary.model.Vocabulary;
+import com.aixuniversity.maadictionary.service.search.FlexibleSearcher;
+import com.aixuniversity.maadictionary.service.tfidf.ApproximateSearcher;
+import com.aixuniversity.maadictionary.service.tfidf.ScoredResult;
 
 import java.sql.SQLException;
 import java.util.List;
