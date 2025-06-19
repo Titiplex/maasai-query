@@ -20,7 +20,7 @@ public final class ApproximateSearcher {
     private final CategoryFlatIndex catFlat;
     private final VocabularyDao vDao = new VocabularyDao();
 
-    private final long totalTokens; // pré‑calcul : Σ freq(phon) + Σ freq(cat)
+    private final int totalTokens; // pré‑calcul : Σ freq(phon) + Σ freq(cat)
 
     public ApproximateSearcher() throws SQLException {
         phonFlat = new PhonemeFlatIndex();
@@ -68,7 +68,7 @@ public final class ApproximateSearcher {
     }
 
     private double tfIdfScore(HybridPattern pat, Vocabulary v) {
-        String[] syll = v.getSyllables().split("\\|");
+        String[] syll = v.getSyll_pattern().split("-");
         double score = 0.0;
         for (Token t : pat.tokens())
             switch (t) {
@@ -94,7 +94,7 @@ public final class ApproximateSearcher {
     }
 
     private double idf(Token t) {
-        long f = switch (t) {
+        int f = switch (t) {
             case TokCatPos c -> catFlat.frequency(c.cat());
             case TokCatFlat c -> catFlat.frequency(c.cat());
             case TokPhonPos p -> phonFlat.frequency(p.phon());

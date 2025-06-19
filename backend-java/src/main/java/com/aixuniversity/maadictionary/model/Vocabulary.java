@@ -4,6 +4,7 @@ import com.aixuniversity.maadictionary.parser.extractors.IPAExtractor;
 import com.aixuniversity.maadictionary.parser.extractors.SyllableExtractor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -12,8 +13,13 @@ import java.util.stream.Collectors;
 
 public class Vocabulary extends AbstractModel {
     private static final Pattern DIALECT_PATTERN = Pattern.compile("\\[(.+?)]");
-    private final String ipa;
-    private final List<Syllable> syllables;
+    private String ipa;
+    private List<Syllable> syllables;
+
+    private String syll_pattern;
+
+    private int syll_count = 0;
+
     private String entry;
     // TODO passer les listes en Set ?
     private List<PartOfSpeech> partsOfSpeech;
@@ -45,6 +51,8 @@ public class Vocabulary extends AbstractModel {
 
         this.ipa = IPAExtractor.parseIPA(this.entry);
         this.syllables = SyllableExtractor.extract(this.ipa);
+        this.syll_pattern = patternize();
+        this.syll_count = this.syllables.size();
     }
 
     public Vocabulary(String word, List<PartOfSpeech> partsOfSpeech, List<Meaning> meanings, List<Example> examples, List<Dialect> dialects) {
@@ -58,6 +66,8 @@ public class Vocabulary extends AbstractModel {
 
         this.ipa = IPAExtractor.parseIPA(this.entry);
         this.syllables = SyllableExtractor.extract(this.ipa);
+        this.syll_pattern = patternize();
+        this.syll_count = this.syllables.size();
     }
 
     public Vocabulary(String word, List<PartOfSpeech> partsOfSpeech, List<Meaning> meanings, List<Example> examples, List<Dialect> dialects, List<Syllable> syllables, String ipa) {
@@ -71,10 +81,13 @@ public class Vocabulary extends AbstractModel {
 
         this.ipa = ipa;
         this.syllables = syllables;
+        this.syll_pattern = patternize();
+        this.syll_count = this.syllables.size();
     }
 
     public String getEntry() {
-        return entry;
+        if (this.entry == null || this.entry.isEmpty()) return null;
+        return this.entry;
     }
 
     public void setEntry(String entry) {
@@ -130,17 +143,21 @@ public class Vocabulary extends AbstractModel {
     }
 
     public String getIpa() {
-        return ipa;
+        return this.ipa.isEmpty() ? this.ipa = IPAExtractor.parseIPA(getEntry()) : this.ipa;
     }
 
-    public List<Syllable> getSyllablesList() {
-        return syllables;
+    public List<Syllable> getSyllables() {
+        return syllables.isEmpty() ? syllables = SyllableExtractor.extract(this.getIpa()) : syllables;
     }
 
-    public String getSyllables() {
+    public String getSyll_pattern() {
+        return syll_pattern;
+    }
+
+    private String patternize() {
         return syllables.stream()
                 .map(Syllable::getPattern)
-                .collect(Collectors.joining("|"));
+                .collect(Collectors.joining("-"));
     }
 
     /**
@@ -178,6 +195,16 @@ public class Vocabulary extends AbstractModel {
         this.dialects.add(dialect);
     }
 
+    public void addDialect(Collection<Dialect> dialects) {
+        if (this.dialects == null) {
+            this.dialects = new ArrayList<>();
+        }
+        for (Dialect dialect : dialects) {
+            if (this.dialects.contains(dialect)) continue;
+            this.dialects.add(dialect);
+        }
+    }
+
     public void addLinkedVocabulary(Vocabulary vocabulary) {
         if (this.linkedVocabularies == null) {
             this.linkedVocabularies = new ArrayList<>();
@@ -210,6 +237,10 @@ public class Vocabulary extends AbstractModel {
         }
         string.append("\n}");
         return string.toString();
+    }
+
+    public void setSyll_pattern(String syll_pattern) {
+        this.syll_pattern = syll_pattern;
     }
 
     @Override
@@ -256,6 +287,22 @@ public class Vocabulary extends AbstractModel {
         //TODO split , par ex
         return rawName.replaceAll("\\s*\\[.+?]\\s*", "")
                 .trim();
+    }
+
+    public int getSyll_count() {
+        return syll_count;
+    }
+
+    public void setSyll_count(int syll_count) {
+        this.syll_count = syll_count;
+    }
+
+    public void setIpa(String ipa) {
+        this.ipa = ipa;
+    }
+
+    public void setSyllables(List<Syllable> syllables) {
+        this.syllables = syllables;
     }
 }
 

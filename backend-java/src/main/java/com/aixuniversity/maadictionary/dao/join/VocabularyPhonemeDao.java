@@ -42,7 +42,8 @@ public class VocabularyPhonemeDao extends AbstractLinkTableDao<Phoneme> {
             ps.setInt(1, 0);
             ps.setInt(2, firstId);
             ps.setInt(3, secondId);
-            if (args.length > 0) ps.setInt(4, (int) args[0]);
+            if (args.length > 0)
+                for (int i = 0; i < args.length; i++) ps.setInt(4+i, (int) args[i]);
             ps.executeUpdate();
 
             ResultSet rs = ps.getGeneratedKeys();

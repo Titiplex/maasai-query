@@ -1,6 +1,5 @@
 package com.aixuniversity.maadictionary.dao.normal;
 
-import com.aixuniversity.maadictionary.config.AbbreviationConfig;
 import com.aixuniversity.maadictionary.config.DaoConfig;
 import com.aixuniversity.maadictionary.config.SqlStringConfig;
 import com.aixuniversity.maadictionary.dao.utils.DaoInterface;
@@ -30,6 +29,7 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         return idMap;
     }
 
+    @SuppressWarnings("SqlSourceToSinkFlow")
     @Override
     public Integer insert(T item) throws SQLException {
         Connection conn = DatabaseHelper.getConnection();
@@ -51,6 +51,7 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         return -1; // ou 0, selon la convention
     }
 
+    @SuppressWarnings("SqlSourceToSinkFlow")
     @Override
     public T searchById(int id) throws SQLException {
         Connection conn = DatabaseHelper.getConnection();
@@ -64,6 +65,7 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         return null;
     }
 
+    @SuppressWarnings("SqlSourceToSinkFlow")
     public Integer searchIdOfUniqueElement(Object element, String columnKey) throws SQLException {
         String query = SqlStringConfig.getSelectionStringSpecificWhereSpecific(getEntityKey(), 0, DaoConfig.getColumns(getEntityKey()).indexOf(columnKey));
         Connection conn = DatabaseHelper.getConnection();
@@ -79,6 +81,7 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         return (rs.getInt(DaoConfig.getColumnName(getEntityKey(), DaoConfig.getColumns(getEntityKey()).get(1))));
     }
 
+    @SuppressWarnings("SqlSourceToSinkFlow")
     @Override
     public List<T> getAll() throws SQLException {
         Connection conn = DatabaseHelper.getConnection();
@@ -94,6 +97,7 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         return list;
     }
 
+    @SuppressWarnings("SqlSourceToSinkFlow")
     @Override
     public boolean update(T item) throws SQLException {
         Connection conn = DatabaseHelper.getConnection();
@@ -105,6 +109,7 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         return rows > 0;
     }
 
+    @SuppressWarnings("SqlSourceToSinkFlow")
     @Override
     public List<T> getAllFromVocId(int vocId) throws SQLException {
         Connection conn = DatabaseHelper.getConnection();
@@ -124,8 +129,9 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         List<String> columns = DaoConfig.getColumns(getEntityKey());
         int index = 1;
         for (String col : columns) {
+            String columnName = DaoConfig.getColumnName(getEntityKey(), col);
             // Récupérer la valeur via un getter ou via un field
-            Object value = getPropertyValue(item, col);
+            Object value = getPropertyValue(item, columnName);
 
             // Déterminer le type
             String columnType = DaoConfig.getColumnType(getEntityKey(), col);
@@ -137,6 +143,7 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         }
     }
 
+    @SuppressWarnings("SqlSourceToSinkFlow")
     @Override
     public boolean delete(T item) throws SQLException {
         Connection conn = DatabaseHelper.getConnection();
@@ -164,7 +171,7 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
                 Object value = extractValue(rs, columnName, columnType);
 
                 // 5) Affecter la valeur dans l’objet instance (via un setter ou le champ)
-                setProperty(instance, prop, value);
+                setProperty(instance, columnName, value);
             }
 
             return instance;
@@ -213,18 +220,6 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         }
     }
 
-    private void setProperty(T instance, String property, Object value)
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        // Ex: property = "name" -> chercher setName(String)
-        String methodName = "set" + capitalize(property);
-
-        // On suppose que value est déjà du bon type
-        Class<?> paramType = value.getClass(); // Par ex. String.class, Integer.class, etc.
-
-        Method setter = instance.getClass().getMethod(methodName, paramType);
-        setter.invoke(instance, value);
-    }
-
     private Object getPropertyValue(T item, String property) {
         try {
             String getterName = "get" + capitalize(property); // ex. "getId"
@@ -240,4 +235,42 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         return s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 
+    /**
+     * Checks if the two classes are compatible, taking the primitive / wrapper
+     * correspondence into account (e.g. int ↔ Integer).
+     */
+    private boolean isTypeCompatible(Class<?> paramType, Class<?> valueType) {
+        if (paramType.isAssignableFrom(valueType)) return true;          // exact / superclass
+        // primitive ↔ wrapper table
+        return (paramType == int.class && valueType == Integer.class) ||
+                (paramType == Integer.class && valueType == int.class) ||
+                (paramType == double.class && valueType == Double.class) ||
+                (paramType == Double.class && valueType == double.class) ||
+                // (paramType == long.class && valueType == Long.class) ||
+                // (paramType == Long.class && valueType == long.class) ||
+                (paramType == boolean.class && valueType == Boolean.class) ||
+                (paramType == Boolean.class && valueType == boolean.class);
+    }
+
+    private void setProperty(T instance, String property, Object value)
+            throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+
+        String methodName = "set" + capitalize(property);
+        Class<?> valueType = (value == null) ? Object.class : value.getClass();
+
+        Method chosen = null;
+        for (Method m : instance.getClass().getMethods()) {
+            if (!m.getName().equals(methodName) || m.getParameterCount() != 1) continue;
+            Class<?> paramType = m.getParameterTypes()[0];
+            if (value == null || isTypeCompatible(paramType, valueType)) {
+                chosen = m;
+                break;
+            }
+        }
+
+        if (chosen == null) {           // keep previous behaviour
+            throw new NoSuchMethodException(instance.getClass() + "." + methodName);
+        }
+        chosen.invoke(instance, value);
+    }
 }

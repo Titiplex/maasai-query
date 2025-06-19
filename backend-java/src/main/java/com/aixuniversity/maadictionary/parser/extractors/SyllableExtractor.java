@@ -152,7 +152,7 @@ public abstract class SyllableExtractor {
     private static String computePattern(List<String> tokens) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < tokens.size(); i++) {
-            if (i > 0) sb.append("-");
+            if (i > 0) sb.append("\\|");
             sb.append(tokenPattern(tokens.get(i)));
         }
         return sb.toString();

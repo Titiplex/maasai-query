@@ -8,7 +8,7 @@ public final class Metrics {
      */
     public static double entropy(Vocabulary v) {
         var counts = new java.util.HashMap<String, Integer>();
-        for (String s : v.getSyllables().split("[| -]"))
+        for (String s : v.getSyll_pattern().split("[| -]"))
             for (String c : s.split("/"))
                 counts.merge(c, 1, Integer::sum);
         double n = counts.values().stream().mapToInt(i -> i).sum();
@@ -22,7 +22,7 @@ public final class Metrics {
      */
     public static double vowelRatio(Vocabulary v) {
         int vCnt = 0, total = 0;
-        for (String s : v.getSyllables().split("[| -]")) {
+        for (String s : v.getSyll_pattern().split("[| -]")) {
             total++;
             if (s.contains("V")) vCnt++;
         }

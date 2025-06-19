@@ -3,22 +3,22 @@ package com.aixuniversity.maadictionary.model;
 import java.util.*;
 
 public class PartOfSpeech extends AbstractModel {
-    private String partOfSpeech;
+    private String pos;
 
     private final static Map<String, PartOfSpeech> partOfSpeechList = new HashMap<>();
 
-    public PartOfSpeech(String partOfSpeech) {
+    public PartOfSpeech(String pos) {
         super();
-        this.partOfSpeech = partOfSpeech;
+        this.pos = pos;
         addPartOfSpeech(this);
     }
 
-    public String getPartOfSpeech() {
-        return partOfSpeech;
+    public String getPos() {
+        return pos;
     }
 
-    public void setPartOfSpeech(String partOfSpeech) {
-        this.partOfSpeech = partOfSpeech;
+    public void setPos(String pos) {
+        this.pos = pos;
     }
 
     public static void removePartOfSpeech(String partOfSpeech) {
@@ -26,8 +26,8 @@ public class PartOfSpeech extends AbstractModel {
     }
 
     public static void addPartOfSpeech(PartOfSpeech partOfSpeech) {
-        if (!partOfSpeechList.containsKey(partOfSpeech.getPartOfSpeech())) {
-            partOfSpeechList.put(partOfSpeech.getPartOfSpeech(), partOfSpeech);
+        if (!partOfSpeechList.containsKey(partOfSpeech.getPos())) {
+            partOfSpeechList.put(partOfSpeech.getPos(), partOfSpeech);
         }
     }
 
@@ -43,16 +43,16 @@ public class PartOfSpeech extends AbstractModel {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         PartOfSpeech that = (PartOfSpeech) o;
-        return Objects.equals(partOfSpeech, that.partOfSpeech);
+        return Objects.equals(pos, that.pos);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(partOfSpeech);
+        return Objects.hashCode(pos);
     }
 
     @Override
     public String toString() {
-        return "partOfSpeech='" + partOfSpeech + '\'';
+        return "partOfSpeech='" + pos + '\'';
     }
 }

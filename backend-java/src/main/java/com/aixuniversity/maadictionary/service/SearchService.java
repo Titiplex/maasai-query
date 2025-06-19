@@ -24,4 +24,11 @@ public final class SearchService {
             return exactHits.stream().map(v -> new ScoredResult(v, 1.0)).toList();
         return approx.searchAndRank(raw, 25);
     }
+
+    public static void main(String[] args) throws SQLException {
+        SearchService searchService = new SearchService();
+
+        System.out.println("Search:");
+        System.out.println(searchService.search("aeyu"));
+    }
 }

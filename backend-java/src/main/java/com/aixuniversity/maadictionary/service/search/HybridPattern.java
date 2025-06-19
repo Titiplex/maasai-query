@@ -28,12 +28,12 @@ public class HybridPattern {
 
     // ------------- PARSE -------------
     public static HybridPattern parse(String raw) throws SQLException {
-        raw = raw.replace('.', '|');        // unifie les séparateurs syllabiques
+        raw = raw.replace('.', '-');        // unifie les séparateurs syllabiques
         List<Token> list = new ArrayList<>();
         byte syl = 0;
-        for (String syllSeg : raw.split("\\|")) {
-            boolean explicitPos = syllSeg.contains("-");
-            String[] items = explicitPos ? syllSeg.split("-") : new String[]{syllSeg};
+        for (String syllSeg : raw.split("-")) {
+            boolean explicitPos = syllSeg.contains("\\|");
+            String[] items = explicitPos ? syllSeg.split("\\|") : new String[]{syllSeg};
             byte pos = 0;
             for (String item : items) {
                 if (item.isBlank()) continue;
@@ -111,7 +111,7 @@ public class HybridPattern {
 
     // ------------- MATCHES -------------
     boolean matches(Vocabulary v) throws SQLException {
-        String[] syls = v.getSyllables().split("\\|");
+        String[] syls = v.getSyll_pattern().split("-");
         for (Token t : tokens) if (!tokenOk(t, syls)) return false;
         return true;
     }
@@ -128,13 +128,13 @@ public class HybridPattern {
             });
             case TokCatPos p -> {
                 if (p.syl() >= syls.length) yield false;
-                String[] ph = syls[p.syl()].split("-");
+                String[] ph = syls[p.syl()].split("\\|");
                 if (p.pos() >= ph.length) yield false;
                 yield Set.of(ph[p.pos()].split("/")).contains(cDao.searchById(p.cat()).getAbbr());
             }
             case TokPhonPos p -> {
                 if (p.syl() >= syls.length) yield false;
-                yield Arrays.stream(syls[p.syl()].split("-"))
+                yield Arrays.stream(syls[p.syl()].split("\\|"))
                         .anyMatch(s -> {
                             try {
                                 return s.startsWith("!" + pDao.searchById(p.phon()));
@@ -147,7 +147,7 @@ public class HybridPattern {
                 String ab = cDao.searchById(f.cat()).getAbbr();
                 boolean ok = false;
                 for (String s : syls)
-                    for (String ph : s.split("-"))
+                    for (String ph : s.split("\\|"))
                         if (Set.of(ph.split("/")).contains(ab)) {
                             ok = true;
                             break;
@@ -158,7 +158,7 @@ public class HybridPattern {
                 String sym = "!" + pDao.searchById(f.phon());
                 boolean ok = false;
                 for (String s : syls)
-                    for (String ph : s.split("-"))
+                    for (String ph : s.split("\\|"))
                         if (ph.startsWith(sym)) {
                             ok = true;
                             break;

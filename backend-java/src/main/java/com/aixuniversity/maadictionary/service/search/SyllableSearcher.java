@@ -43,7 +43,7 @@ public final class SyllableSearcher implements Searcher<String> {
         List<Vocabulary> res = new ArrayList<>();
         for (int id : cand) {
             Vocabulary v = vocabDao.searchById(id);
-            if (v != null && matches(spec, v.getSyllables())) res.add(v);
+            if (v != null && matches(spec, v.getSyll_pattern())) res.add(v);
         }
         return res;
     }
@@ -52,10 +52,10 @@ public final class SyllableSearcher implements Searcher<String> {
      * Vérifie la correspondance exacte entre une structure syllabique et une forme.
      */
     private static boolean matches(SyllablePattern spec, String raw) {
-        String[] syll = raw.split("\\|", -1);
+        String[] syll = raw.split("-", -1);
         if (syll.length != spec.syllables().size()) return false;
         for (int s = 0; s < syll.length; s++) {
-            String[] phon = syll[s].split("-", -1);
+            String[] phon = syll[s].split("\\|", -1);
             List<List<String>> want = spec.syllables().get(s);
             if (phon.length != want.size()) return false;
             for (int p = 0; p < phon.length; p++) {
@@ -73,9 +73,9 @@ public final class SyllableSearcher implements Searcher<String> {
         String[] ipa = query.replaceAll("#", "")
                 .replaceAll("\\.", " ")
                 .split(" ");
-        String[] syll = raw.split("\\|", -1);
+        String[] syll = raw.split("-", -1);
         List<String> flatCatList = Arrays.stream(syll)
-                .flatMap(s -> Arrays.stream(s.split("-")))
+                .flatMap(s -> Arrays.stream(s.split("\\|")))
                 .toList();
         if (ipa.length != flatCatList.size()) return false;
 

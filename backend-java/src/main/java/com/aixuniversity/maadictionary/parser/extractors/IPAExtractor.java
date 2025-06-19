@@ -21,6 +21,7 @@ public abstract class IPAExtractor {
      * @return La représentation IPA du mot, avec éventuellement un séparateur espace si la particule forme une syllabe distincte.
      */
     public static String parseIPA(String word) {
+        if (word == null || word.isEmpty()) return "";
         // Vérifier s'il existe un tiret indiquant une particule en début d'entrée.
         int hyphenIndex = word.indexOf('-');
         if (hyphenIndex > 0 && hyphenIndex < word.length() - 1) {

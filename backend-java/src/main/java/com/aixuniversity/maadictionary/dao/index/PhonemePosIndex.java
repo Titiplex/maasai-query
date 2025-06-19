@@ -18,7 +18,7 @@ public final class PhonemePosIndex {
     private final Object2IntOpenHashMap<Key> freq = new Object2IntOpenHashMap<>();
 
     public PhonemePosIndex() throws SQLException {
-        String sql = "SELECT phonemeId, syllable_index, vocabularyId FROM VocabularyPhoneme ORDER BY phonemeId, syllable_index, vocabularyId";
+        String sql = "SELECT phonemeId, syllableIndex, vocabularyId FROM VocabularyPhoneme ORDER BY phonemeId, syllableIndex, vocabularyId";
         try (Connection c = DatabaseHelper.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
             Key cur = null;

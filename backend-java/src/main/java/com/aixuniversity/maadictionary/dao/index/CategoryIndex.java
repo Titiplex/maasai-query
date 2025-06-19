@@ -16,9 +16,9 @@ public final class CategoryIndex implements SearchIndex<Integer> {
     public CategoryIndex() throws SQLException {
         try (Connection c = DatabaseHelper.getConnection();
              PreparedStatement ps = c.prepareStatement("""
-                     SELECT categoryId, vocabularyId
+                     SELECT category_id, vocab_phoneme_id
                      FROM VocabularyPhonemeCategory
-                     ORDER BY categoryId, vocabularyId""")) {
+                     ORDER BY category_id, vocab_phoneme_id""")) {
             ResultSet rs = ps.executeQuery();
             int cur = -1;
             IntArrayList lst = null;

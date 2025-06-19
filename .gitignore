@@ -28,10 +28,3 @@ bin/
 
 ### Mac OS ###
 .DS_Store
-
-### Other ###
-.env
-output.txt
-temp.txt
-list.txt
-/rapport/

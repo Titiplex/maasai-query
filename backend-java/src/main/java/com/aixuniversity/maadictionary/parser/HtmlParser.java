@@ -129,7 +129,8 @@ public abstract class HtmlParser {
                 String rawIdx = idx.text().trim();
                 try {
                     vocabulary.setHomonymIndex(Integer.parseInt(rawIdx));
-                } catch (NumberFormatException ignored) { }
+                } catch (NumberFormatException ignored) {
+                }
             }
 
             if (partOfSpeech != null) {
@@ -181,36 +182,92 @@ public abstract class HtmlParser {
         return pageVocabulary;
     }
 
-    private static Dialect extractDialects(Element dialectElement) {
-        Dialect dialect = new Dialect();
-        if (dialectElement != null) {
-            String fullText = dialectElement.text();
+    /**
+     * Extract every dialect that appears in the element.
+     * Examples handled:
+     * "[Kisongo] some text"          → dialects = [Kisongo], remainder = "some text"
+     * "[Kisongo, Parakuyo]"          → dialects = [Kisongo, Parakuyo], remainder = ""
+     * "alternative variant, [IlChamus]" → dialects = [IlChamus], remainder = ""
+     * <p>
+     * If nothing is found, the method falls back to searching the whole text
+     * for any known dialect name.
+     */
+    private static List<Dialect> extractDialects(Element dialectElement) {
+        return extractDialectsAndRemainder(dialectElement).dialects();
+    }
 
-            // Regex pour extraire le contenu entre crochets
-            Pattern pattern = Pattern.compile("\\[(.*?)]");
-            Matcher matcher = pattern.matcher(fullText);
+    /**
+     * Same as {@link #extractDialects(Element)} but also returns the trailing
+     * part found after the closing bracket, if any.
+     */
+    private static DialectParseResult extractDialectsAndRemainder(Element dialectElement) {
+        // Safety – empty result object
+        if (dialectElement == null) {
+            return new DialectParseResult(Collections.emptyList(), "");
+        }
 
-            if (matcher.find()) {
-                String insideBrackets = matcher.group(1); // contenu entre []
-                // Si plusieurs dialectes séparés par des virgules
-                // TODO liste dialects
-//                for (String d : insideBrackets.split(",")) {
-//                    dialect.setDialect(d.trim());
-//                }
-                dialect.setDialectName(insideBrackets);
+        // 1) Raw text cleanup
+        String raw = dialectElement.text().trim();
+
+        // Remove “alternative variant,” (case-insensitive, optional comma/space)
+        raw = raw.replaceFirst("(?i)^\\s*alternative\\s+variant,?\\s*", "");
+
+        // 2) Regex: [dialect1, dialect2] (remainder)
+        Pattern p = Pattern.compile("^\\s*\\[([^]]+)]\\s*(.*)$");
+        Matcher m = p.matcher(raw);
+
+        List<Dialect> dialects = new ArrayList<>();
+        String remainder = "";
+
+        if (m.find()) {
+            // group(1) ⇒ "Kisongo, Parakuyo"
+            String inside = m.group(1);
+            remainder = m.group(2).trim(); // may be empty
+
+            // Split on commas, ignore blanks
+            for (String part : inside.split(",")) {
+                String name = part.trim();
+                if (!name.isEmpty()) {
+                    dialects.add(getOrCreateDialect(name));
+                }
+            }
+        } else {
+            // 3) Fallback – text contains dialect names but no brackets
+            for (String known : Dialect.getDialects().keySet()) {
+                if (raw.toLowerCase().contains(known.toLowerCase())) {
+                    dialects.add(getOrCreateDialect(known));
+                }
             }
         }
-        return dialect;
+
+        return new DialectParseResult(dialects, remainder);
+    }
+
+    /**
+     * Utility: reuse existing dialect instance or create a new one.
+     */
+    private static Dialect getOrCreateDialect(String name) {
+        Dialect d = Dialect.getDialects().get(name);
+        if (d == null) {
+            d = new Dialect();
+            d.setDialectName(name);
+        }
+        return d;
+    }
+
+    /**
+     * Immutable record that groups the parsing result.
+     */
+    private record DialectParseResult(List<Dialect> dialects, String remainder) {
     }
 
     private static Vocabulary extractLinkedVocabulary(Element heading, Element paradigm) {
         Vocabulary linkedVocabulary = new Vocabulary();
 
-        linkedVocabulary.addDialect(extractDialects(heading));
-        for(String element : heading.text().split(" ")) {
-            if(!element.isEmpty() && !(element.contains("[") || element.contains("]"))) {
-                linkedVocabulary.addPartOfSpeech(new PartOfSpeech(element.replaceAll("\\W+", "")));
-            }
+        DialectParseResult dialectsAndRemainder = extractDialectsAndRemainder(heading);
+        linkedVocabulary.addDialect(dialectsAndRemainder.dialects());
+        for (String str : dialectsAndRemainder.remainder().split("\\W+")) {
+            if (!str.isEmpty() && PartOfSpeech.getPartOfSpeechList().containsKey(str)) linkedVocabulary.addPartOfSpeech(new PartOfSpeech(str));
         }
 
         linkedVocabulary.setEntry(paradigm.text());

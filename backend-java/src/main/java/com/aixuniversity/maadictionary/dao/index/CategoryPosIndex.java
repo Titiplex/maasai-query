@@ -19,10 +19,10 @@ public final class CategoryPosIndex {
 
     public CategoryPosIndex() throws SQLException {
         String sql = """
-                SELECT vpc.category_id, vp.syllable_index, vp.pos_in_syllable, vp.vocabularyId
+                SELECT vpc.category_id, vp.syllableIndex, vp.posSyllable, vp.vocabularyId
                 FROM VocabularyPhonemeCategory vpc
                 JOIN VocabularyPhoneme vp USING (vocab_phoneme_id)
-                ORDER BY vpc.category_id, vp.syllable_index, vp.pos_in_syllable, vp.vocabularyId""";
+                ORDER BY vpc.category_id, vp.syllableIndex, vp.posSyllable, vp.vocabularyId""";
         try (Connection c = DatabaseHelper.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
             Key cur = null;

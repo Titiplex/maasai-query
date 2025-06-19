@@ -12,7 +12,7 @@ public class Category extends AbstractModel {
 
     private static final Map<String, Category> categories = new HashMap<>();
 
-    private long freq = 0;
+    private int freq = 0;
     private String name;
     private String abbr;
 
@@ -49,7 +49,8 @@ public class Category extends AbstractModel {
         }
     }
 
-    public long getFreq() {
+    public int getFreq() {
+        if (this.freq == 0) return 0;
         return 1 / this.freq;
     }
 
@@ -59,6 +60,10 @@ public class Category extends AbstractModel {
 
     public void addFreq(int nb) {
         this.freq += nb;
+    }
+
+    public void setFreq(int freq) {
+        this.freq = freq;
     }
 
     public String getName() {

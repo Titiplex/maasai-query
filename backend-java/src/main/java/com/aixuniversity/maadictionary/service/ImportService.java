@@ -14,6 +14,7 @@ import java.util.Map;
  */
 public abstract class ImportService {
     public static boolean importVocabulary(List<Vocabulary> vocabularyList) {
+        vocabularyList.removeIf(v -> v.getEntry() == null || v.getEntry().isEmpty());
         try {
             Map<Language, Integer> languageIntegerMap = new LanguageDao().insertAll(Language.getLanguages().values());
             Map<PartOfSpeech, Integer> posIntegerMap = new PartOfSpeechDao().insertAll(PartOfSpeech.getPartOfSpeechList().values());
@@ -65,7 +66,7 @@ public abstract class ImportService {
                     vocabularyDialectDao.insertLink(vocabulary.getId(), dialectIntegerMap.get(dialect));
                 }
 
-                System.out.println("Enregistrement pour : " + vocabulary.getEntry());
+                // System.out.println("Enregistrement pour : " + vocabulary.getEntry());
             }
 
             return true;
@@ -76,6 +77,7 @@ public abstract class ImportService {
 
     public static void main(String[] args) {
         String baseUrl = "https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/";
+
         System.out.println(ImportService.importVocabulary(HtmlParser.parseAll(baseUrl)));
     }
 }

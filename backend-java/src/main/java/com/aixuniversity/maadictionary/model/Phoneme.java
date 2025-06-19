@@ -11,7 +11,7 @@ import java.util.Objects;
 public class Phoneme extends AbstractModel {
     private static final Map<String, Phoneme> phonemes = new HashMap<>();
 
-    private long freq = 0;
+    private int freq = 0;
     private String code;
     private String ipa;
 
@@ -83,7 +83,8 @@ public class Phoneme extends AbstractModel {
         return phonemes.get(ipa);
     }
 
-    public long getFreq() {
+    public int getFreq() {
+        if (this.freq == 0) return 0;
         return 1 / this.freq;
     }
 
@@ -93,6 +94,10 @@ public class Phoneme extends AbstractModel {
 
     public void addFreq(int nb) {
         this.freq += nb;
+    }
+
+    public void setFreq(int freq) {
+        this.freq = freq;
     }
 
     @Override

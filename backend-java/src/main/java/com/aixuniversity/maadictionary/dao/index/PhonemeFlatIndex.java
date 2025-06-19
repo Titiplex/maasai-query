@@ -9,7 +9,7 @@ import java.util.Optional;
 public final class PhonemeFlatIndex implements SearchFlatIndex<Integer> {
     private final it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap<Integer, IntArrayList> post = new it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap<>();
     private final it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap<Integer> freq = new it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap<>();
-    private long total = 0;
+    private int total = 0;
 
     public PhonemeFlatIndex() throws SQLException {
         var sql = "SELECT phonemeId, vocabularyId FROM VocabularyPhoneme ORDER BY phonemeId, vocabularyId";
@@ -44,7 +44,7 @@ public final class PhonemeFlatIndex implements SearchFlatIndex<Integer> {
     }
 
     @Override
-    public long totalFreq() {
+    public int totalFreq() {
         return total;
     }
 
