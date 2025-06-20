@@ -12,7 +12,11 @@ public final class CategoryFlatIndex implements SearchFlatIndex<Integer> {
     private int total = 0;
 
     public CategoryFlatIndex() throws SQLException {
-        var sql = "SELECT category_id, vocabularyId FROM VocabularyPhonemeCategory JOIN VocabularyPhoneme USING(vocab_phoneme_id) ORDER BY category_id, vocabularyId";
+        var sql = """
+                SELECT vpc.category_id, vp.vocabularyId FROM VocabularyPhonemeCategory vpc
+                JOIN VocabularyPhoneme vp ON vpc.vocab_phoneme_id = vp.id
+                ORDER BY category_id, vocabularyId
+                """;
         try (var c = DatabaseHelper.getConnection();
              var ps = c.prepareStatement(sql);
              var rs = ps.executeQuery()) {

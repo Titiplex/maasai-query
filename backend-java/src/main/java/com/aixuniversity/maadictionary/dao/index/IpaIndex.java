@@ -19,7 +19,7 @@ public final class IpaIndex implements SearchIndex<String> {
         for (Vocabulary v : all) {
             int id = v.getId();
             for (String tok : v.getIpa().trim().split("\\s+")) {
-                posting.computeIfAbsent(tok, k -> new IntArrayList()).add(id);
+                posting.computeIfAbsent(tok,k -> new IntArrayList()).add(id);
             }
         }
         posting.forEach((k, l) -> freq.put(k, l.size()));

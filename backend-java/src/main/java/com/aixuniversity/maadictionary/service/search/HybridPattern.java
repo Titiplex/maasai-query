@@ -1,15 +1,14 @@
 package com.aixuniversity.maadictionary.service.search;
 
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import com.aixuniversity.maadictionary.dao.index.CategoryFlatIndex;
 import com.aixuniversity.maadictionary.dao.index.CategoryPosIndex;
 import com.aixuniversity.maadictionary.dao.index.PhonemeFlatIndex;
 import com.aixuniversity.maadictionary.dao.index.PhonemePosIndex;
 import com.aixuniversity.maadictionary.dao.normal.CategoryDao;
 import com.aixuniversity.maadictionary.dao.normal.PhonemeDao;
-import com.aixuniversity.maadictionary.model.Phoneme;
 import com.aixuniversity.maadictionary.model.Vocabulary;
 import com.aixuniversity.maadictionary.service.search.tokens.*;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -63,7 +62,7 @@ public class HybridPattern {
             if (pos != null) return new TokCatPos(cid, syl, pos);
             else return new TokCatFlat(cid);
         } else {
-            int pid = new PhonemeDao().searchIdOfUniqueElement(new Phoneme("", s), "ipa");
+            int pid = new PhonemeDao().searchIdOfUniqueElement(s, "ipa");
             if (pos != null) return new TokPhonPos(pid, syl);
             else return new TokPhonFlat(pid);
         }

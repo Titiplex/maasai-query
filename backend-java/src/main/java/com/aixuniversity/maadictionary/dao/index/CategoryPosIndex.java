@@ -21,7 +21,7 @@ public final class CategoryPosIndex {
         String sql = """
                 SELECT vpc.category_id, vp.syllableIndex, vp.posSyllable, vp.vocabularyId
                 FROM VocabularyPhonemeCategory vpc
-                JOIN VocabularyPhoneme vp USING (vocab_phoneme_id)
+                JOIN VocabularyPhoneme vp ON vpc.vocab_phoneme_id = vp.id
                 ORDER BY vpc.category_id, vp.syllableIndex, vp.posSyllable, vp.vocabularyId""";
         try (Connection c = DatabaseHelper.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
