@@ -22,36 +22,14 @@ public class Main {
         System.out.println("Processing...");
         System.out.println("Result : " + (process(baseUrl) ? "OK" : "KO"));
 
-
-        try (Scanner scanner = new Scanner(System.in)) {
-            SearchService searchService = new SearchService();   // reuse the service instance
-            while (true) {
-                System.out.print("Search (blank to quit): ");
-                String query = scanner.nextLine().trim();        // real user input
-                if (query.isBlank()) {
-                    System.out.println("Bye!");
-                    break;                                       // explicit exit condition
-                }
-                try {
-                    List<ScoredResult> results = searchService.search(query);
-                    if (results.isEmpty()) {
-                        System.out.println("No results. Please check if all the characters in the query are known.");
-                    } else {
-                        results.forEach(System.out::println);
-                    }
-                } catch (SQLException e) {
-                    System.err.println("Search failed: " + e.getMessage());
-                }
-            }
-        }
+        SearchService.main(new String[]{""});
     }
 
     public static boolean process(String url) {
         try {
             if (ImportStatus.needsImport(url)) {
                 System.out.println("\n\tImporting " + url);
-                ImportService.main(new String[]{""});
-                ImportStatus.recordImport(url);
+                ImportService.main(new String[]{url});
             }
             System.out.println("\n\tReindexing");
             IndexingService.main(new String[]{});

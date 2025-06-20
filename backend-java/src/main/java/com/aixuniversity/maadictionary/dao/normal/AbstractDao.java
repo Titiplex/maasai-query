@@ -72,16 +72,19 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         PreparedStatement ps = conn.prepareStatement(query);
 
         ps.setObject(1, element);
+        System.out.println(ps);
 
         ResultSet rs = ps.executeQuery();
         if (!rs.next()) {
             return null;
         }
-        if (rs.getFetchSize() != 1) {
-            throw new IllegalArgumentException("Multiple or no ids for element " + element.toString() + " in column " + columnKey);
-        }
+//        if (rs.getFetchSize() != 1) {
+//            throw new IllegalArgumentException("Multiple or no ids for element " + element.toString() + " in column " + columnKey);
+//        }
+        System.out.println("fetch " + rs.getFetchSize());
+        System.out.println(rs.getInt(1));
 
-        return (rs.getInt(DaoConfig.getColumnName(getEntityKey(), DaoConfig.getColumns(getEntityKey()).get(1))));
+        return (rs.getInt(1));
     }
 
     @SuppressWarnings("SqlSourceToSinkFlow")

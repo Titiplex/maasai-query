@@ -7,6 +7,7 @@ import com.aixuniversity.maadictionary.service.tfidf.ScoredResult;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Scanner;
 
 public final class SearchService {
     private final FlexibleSearcher exact = new FlexibleSearcher();
@@ -26,15 +27,25 @@ public final class SearchService {
     }
 
     public static void main(String[] args) throws SQLException {
-        SearchService searchService = new SearchService();
-
-        System.out.println("Search:");
-        List<ScoredResult> result = searchService.search(args[0]);
-        if (result.isEmpty()) {
-            System.out.println("No results. Please check if all the characters in the query are known.");
-        } else {
-            for (ScoredResult r : result) {
-                System.out.println(r);
+        try (Scanner scanner = new Scanner(System.in)) {
+            SearchService searchService = new SearchService();   // reuse the service instance
+            while (true) {
+                System.out.print("Search (blank to quit): ");
+                String query = scanner.nextLine().trim();
+                if (query.isBlank()) {
+                    System.out.println("Bye!");
+                    break;
+                }
+                try {
+                    List<ScoredResult> results = searchService.search(query);
+                    if (results.isEmpty()) {
+                        System.out.println("No results. Please check if all the characters in the query are known.");
+                    } else {
+                        results.forEach(System.out::println);
+                    }
+                } catch (SQLException e) {
+                    System.err.println("Search failed: " + e.getMessage());
+                }
             }
         }
     }

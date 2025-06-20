@@ -262,15 +262,13 @@ public abstract class HtmlParser {
     }
 
     private static Vocabulary extractLinkedVocabulary(Element heading, Element paradigm) {
-        Vocabulary linkedVocabulary = new Vocabulary();
+        Vocabulary linkedVocabulary = new Vocabulary(paradigm.text());
 
         DialectParseResult dialectsAndRemainder = extractDialectsAndRemainder(heading);
         linkedVocabulary.addDialect(dialectsAndRemainder.dialects());
         for (String str : dialectsAndRemainder.remainder().split("\\W+")) {
             if (!str.isEmpty() && PartOfSpeech.getPartOfSpeechList().containsKey(str)) linkedVocabulary.addPartOfSpeech(new PartOfSpeech(str));
         }
-
-        linkedVocabulary.setEntry(paradigm.text());
 
         return linkedVocabulary;
     }

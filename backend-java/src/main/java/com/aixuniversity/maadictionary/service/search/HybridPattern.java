@@ -6,6 +6,7 @@ import com.aixuniversity.maadictionary.dao.index.PhonemeFlatIndex;
 import com.aixuniversity.maadictionary.dao.index.PhonemePosIndex;
 import com.aixuniversity.maadictionary.dao.normal.CategoryDao;
 import com.aixuniversity.maadictionary.dao.normal.PhonemeDao;
+import com.aixuniversity.maadictionary.model.Phoneme;
 import com.aixuniversity.maadictionary.model.Vocabulary;
 import com.aixuniversity.maadictionary.service.search.tokens.*;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -31,7 +32,7 @@ public class HybridPattern {
         List<Token> list = new ArrayList<>();
         byte syl = 0;
         for (String syllSeg : raw.split("-")) {
-            boolean explicitPos = syllSeg.contains("\\|");
+            boolean explicitPos = syllSeg.contains("|");
             String[] items = explicitPos ? syllSeg.split("\\|") : new String[]{syllSeg};
             byte pos = 0;
             for (String item : items) {
@@ -65,6 +66,7 @@ public class HybridPattern {
             if (pos != null) return new TokCatPos(cid, syl, pos);
             else return new TokCatFlat(cid);
         } else {
+            System.out.println(Phoneme.getPhonemeList());
             Integer pid = new PhonemeDao().searchIdOfUniqueElement(s, "ipa");
             if (pid == null) {
                 return new TokImpossible();

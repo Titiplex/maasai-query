@@ -6,6 +6,7 @@ import com.aixuniversity.maadictionary.dao.normal.*;
 import com.aixuniversity.maadictionary.model.*;
 import com.aixuniversity.maadictionary.parser.HtmlParser;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,7 @@ public abstract class ImportService {
             Map<Language, Integer> languageIntegerMap = new LanguageDao().insertAll(Language.getLanguages().values());
             Map<PartOfSpeech, Integer> posIntegerMap = new PartOfSpeechDao().insertAll(PartOfSpeech.getPartOfSpeechList().values());
             Map<Dialect, Integer> dialectIntegerMap = new DialectDao().insertAll(Dialect.getDialects().values());
+            System.out.println("Importing " + dialectIntegerMap);
             Map<Vocabulary, Integer> vocabularyIntegerMap = new VocabularyDao().insertAll(vocabularyList);
 
             MeaningDao meaningDao = new MeaningDao();
@@ -65,13 +67,24 @@ public abstract class ImportService {
                     posLinkedDao.insertLink(vocabulary.getId(), posIntegerMap.get(pos));
                 }
 
+                // TODO linked ids sometimes not inserted prior in vocab
                 for (Vocabulary vocLinked : vocabulary.getLinkedVocabularies()) {
-                    vocLinkedDao.insertLink(vocabulary.getId(), vocabularyIntegerMap.get(vocLinked));
+                    Integer linkedId = vocabularyIntegerMap.get(vocLinked);
+
+                    // If the linked vocabulary has not been inserted yet, skip it and warn the user
+                    if (linkedId == null) {
+                        System.err.printf(
+                            "Warning: linked vocabulary '%s' referenced from '%s' is missing from the import list and will be ignored.%n",
+                            vocLinked.getEntry(), vocabulary.getEntry()
+                        );
+                        continue;          // Prevents NullPointerException
+                    }
+                    vocLinkedDao.insertLink(vocabulary.getId(), linkedId);
                 }
 
                 List<Dialect> dialects = vocabulary.getDialects();
                 for (Dialect dialect : dialects) {
-                    vocabularyDialectDao.insertLink(vocabulary.getId(), dialectIntegerMap.get(dialect));
+                    vocabularyDialectDao.insertLink(vocabulary.getId(), dialectIntegerMap.get(dialect) != null ? dialectIntegerMap.get(dialect) : 1);
                 }
 
                 // System.out.println("Enregistrement pour : " + vocabulary.getEntry());
@@ -79,13 +92,15 @@ public abstract class ImportService {
 
             return true;
         } catch (Exception e) {
+            System.err.println("Erreur lors de l'importation : " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
 
-    public static void main(String[] args) {
-        String baseUrl = "https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/";
+    public static void main(String[] args) throws SQLException {
+        String baseUrl = args[0];
 
-        System.out.println(ImportService.importVocabulary(HtmlParser.parseAll(baseUrl)));
+        ImportService.importVocabulary(HtmlParser.parseAll(baseUrl));
+        ImportStatus.recordImport(baseUrl);
     }
 }
