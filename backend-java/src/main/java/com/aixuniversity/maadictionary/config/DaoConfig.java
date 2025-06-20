@@ -49,6 +49,17 @@ public abstract class DaoConfig {
         return PROPERTIES.getProperty(key + ".column." + columnKey);
     }
 
+    public static String getColumnKeyByName(String key, String name) {
+        String columnKey = null;
+        for (String column : getColumns(key)) {
+            if (name.equalsIgnoreCase(getColumnName(key, column))) {
+                columnKey = column;
+                break;
+            }
+        }
+        return columnKey;
+    }
+
     public static String getColumnType(String key, String columnKey) {
         return PROPERTIES.getProperty(key + ".type." + columnKey);
     }

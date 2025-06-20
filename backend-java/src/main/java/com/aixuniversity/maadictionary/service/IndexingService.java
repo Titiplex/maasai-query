@@ -27,13 +27,13 @@ public final class IndexingService {
 
         for (Vocabulary v : vDao.getAll()) {
             if (!vpDao.getLinkedIds(v.getId()).isEmpty()) continue;      // déjà indexé ⇒ skip
-            System.out.println("Indexing " + v + "\n" + v.getSyll_pattern());
+            // System.out.println("Indexing " + v.getEntry());
 
             int pos = 0;
             for (Syllable s : v.getSyllables()) {
                 List<String> toks = s.getTokens();
                 List<List<String>> pat = SyllablePattern.parseUniqueSyllable(s.getPattern());
-                System.out.println(pat);
+                // System.out.println(pat);
 
                 int indexSyll = v.getSyllables().indexOf(s);
                 if (toks.size() != pat.size()) {
@@ -45,7 +45,7 @@ public final class IndexingService {
                 for (int i = 0; i < toks.size(); i++) {
                     String tok = toks.get(i);
                     Phoneme ph = Phoneme.getOrCreateSQL(tok, pDao);
-                    System.out.println(ph);
+                    // System.out.println(ph);
                     ph.addFreq();
 
                     int vpId = (int) vpDao.insertLink(v.getId(), ph.getId(), pos++, i, indexSyll);
@@ -54,7 +54,7 @@ public final class IndexingService {
                     List<String> catAbbrs = (i < pat.size()) ? pat.get(i) : Collections.emptyList();
                     for (String abbr : catAbbrs) {
                         Category cat = Category.getOrCreate(abbr, cDao);
-                        System.out.println(cat);
+                        // System.out.println(cat);
                         cat.addFreq();
                         pcDao.insertLink(ph.getId(), cat.getId());
                         vpcDao.insertLink(vpId, cat.getId(), i, indexSyll);
