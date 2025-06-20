@@ -58,11 +58,17 @@ public class HybridPattern {
         }
         boolean isCat = Character.isUpperCase(s.charAt(0));
         if (isCat) {
-            int cid = new CategoryDao().searchIdOfUniqueElement(s, "abbr");
+            Integer cid = new CategoryDao().searchIdOfUniqueElement(s, "abbr");
+            if (cid == null) {                  // ← unknown phoneme
+                return new TokImpossible();
+            }
             if (pos != null) return new TokCatPos(cid, syl, pos);
             else return new TokCatFlat(cid);
         } else {
-            int pid = new PhonemeDao().searchIdOfUniqueElement(s, "ipa");
+            Integer pid = new PhonemeDao().searchIdOfUniqueElement(s, "ipa");
+            if (pid == null) {
+                return new TokImpossible();
+            }
             if (pos != null) return new TokPhonPos(pid, syl);
             else return new TokPhonFlat(pid);
         }
@@ -164,6 +170,7 @@ public class HybridPattern {
                         }
                 yield ok;
             }
+            case TokImpossible ignored -> false;
         };
     }
 

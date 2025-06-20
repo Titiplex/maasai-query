@@ -30,9 +30,7 @@ public class Main {
 //        System.out.println("Processing...");
 //        System.out.println("Result : " + process());
 
-        SearchService searchService = new SearchService();
-        System.out.println("Search:");
-        System.out.println(searchService.search("aeyu"));
+        SearchService.main(new String[]{"aeyu"});
     }
 
     public static void test() throws SQLException {

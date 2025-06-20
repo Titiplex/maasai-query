@@ -2,9 +2,7 @@
 package com.aixuniversity.maadictionary.dao.index;
 
 import it.unimi.dsi.fastutil.ints.*;
-import com.aixuniversity.maadictionary.dao.utils.DatabaseHelper;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,11 +12,10 @@ public final class CategoryIndex implements SearchIndex<Integer> {
     private final Int2IntMap freq = new Int2IntOpenHashMap();
 
     public CategoryIndex() throws SQLException {
-        try (Connection c = DatabaseHelper.getConnection();
-             PreparedStatement ps = c.prepareStatement("""
-                     SELECT category_id, vocab_phoneme_id
-                     FROM VocabularyPhonemeCategory
-                     ORDER BY category_id, vocab_phoneme_id""")) {
+        try (PreparedStatement ps = db.prepareStatement("""
+                SELECT category_id, vocab_phoneme_id
+                FROM VocabularyPhonemeCategory
+                ORDER BY category_id, vocab_phoneme_id""")) {
             ResultSet rs = ps.executeQuery();
             int cur = -1;
             IntArrayList lst = null;

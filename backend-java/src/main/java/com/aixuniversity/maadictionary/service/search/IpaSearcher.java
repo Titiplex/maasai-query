@@ -1,8 +1,8 @@
 // service/search/IpaSearcher.java
 package com.aixuniversity.maadictionary.service.search;
 
+import com.aixuniversity.maadictionary.dao.index.PhonemeIndex;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import com.aixuniversity.maadictionary.dao.index.IpaIndex;
 import com.aixuniversity.maadictionary.dao.normal.VocabularyDao;
 import com.aixuniversity.maadictionary.model.Vocabulary;
 
@@ -12,17 +12,17 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public final class IpaSearcher implements Searcher<String> {
-    private final IpaIndex idx;
+    private final PhonemeIndex idx;
     private final VocabularyDao dao;
 
-    public IpaSearcher(IpaIndex index, VocabularyDao vocabularyDao) {
+    public IpaSearcher(PhonemeIndex index, VocabularyDao vocabularyDao) {
         idx = index;
         dao = vocabularyDao;
     }
 
     public IpaSearcher() throws SQLException {
         this.dao = new VocabularyDao();
-        this.idx = new IpaIndex(this.dao);
+        this.idx = new PhonemeIndex(this.dao);
     }
 
     /**
@@ -46,7 +46,7 @@ public final class IpaSearcher implements Searcher<String> {
 
     private IntArrayList collectAll() {
         IntArrayList all = new IntArrayList();
-        idx.getPosting().values().forEach(all::addAll);  // expose un getter dans IpaIndex
+        idx.getPosting().values().forEach(all::addAll);  // expose un getter dans PhonemeIndex
         return all;
     }
 

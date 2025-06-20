@@ -33,6 +33,12 @@ public final class ApproximateSearcher {
      */
     public List<ScoredResult> searchAndRank(String raw, int k) throws SQLException {
         HybridPattern pat = HybridPattern.parse(raw);
+
+        // When unknown symbol => empty list
+        if (pat.tokens().stream().anyMatch(t -> t instanceof TokImpossible)) {
+            return List.of();
+        }
+
         // 1. récupérer l’union de tous les IDs via index plats
         Set<Integer> cand = new HashSet<>();
         for (var t : pat.tokens())
@@ -72,7 +78,7 @@ public final class ApproximateSearcher {
         double score = 0.0;
         for (Token t : pat.tokens())
             switch (t) {
-                case TokAny any -> {
+                case TokAny _ -> {
                 }
                 case TokChoice ch -> {
                     if (ch.options().stream().anyMatch(opt -> present(opt, syll)))

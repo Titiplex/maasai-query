@@ -1,13 +1,14 @@
 package com.aixuniversity.maadictionary.service.search;
 
-import com.aixuniversity.maadictionary.service.search.tokens.Token;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import com.aixuniversity.maadictionary.dao.index.CategoryFlatIndex;
 import com.aixuniversity.maadictionary.dao.index.CategoryPosIndex;
 import com.aixuniversity.maadictionary.dao.index.PhonemeFlatIndex;
 import com.aixuniversity.maadictionary.dao.index.PhonemePosIndex;
 import com.aixuniversity.maadictionary.dao.normal.VocabularyDao;
 import com.aixuniversity.maadictionary.model.Vocabulary;
+import com.aixuniversity.maadictionary.service.search.tokens.TokImpossible;
+import com.aixuniversity.maadictionary.service.search.tokens.Token;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -30,6 +31,12 @@ public final class FlexibleSearcher implements Searcher<String> {
     @Override
     public List<Vocabulary> search(String raw) throws SQLException {
         HybridPattern pat = HybridPattern.parse(raw);
+
+        // When unknown symbol => impossible, returns void
+        if (pat.tokens().stream().anyMatch(t -> t instanceof TokImpossible)) {
+            return List.of();
+        }
+
         Token pivot = pat.pickPivot(catPos, phPos, catFlat, phFlat);
         IntArrayList cand = pat.idsForPivot(pivot, catPos, phPos, catFlat, phFlat);
         List<Vocabulary> out = new ArrayList<>();

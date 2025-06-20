@@ -1,4 +1,4 @@
-// dao/index/IpaIndex.java
+// dao/index/PhonemeIndex.java
 package com.aixuniversity.maadictionary.dao.index;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -10,11 +10,11 @@ import com.aixuniversity.maadictionary.model.Vocabulary;
 import java.sql.SQLException;
 import java.util.List;
 
-public final class IpaIndex implements SearchIndex<String> {
+public final class PhonemeIndex implements SearchIndex<String> {
     private final Object2ObjectOpenHashMap<String, IntArrayList> posting = new Object2ObjectOpenHashMap<>();
     private final Object2IntOpenHashMap<String> freq = new Object2IntOpenHashMap<>();
 
-    public IpaIndex(VocabularyDao vocabDao) throws SQLException {
+    public PhonemeIndex(VocabularyDao vocabDao) throws SQLException {
         List<Vocabulary> all = vocabDao.getAll();
         for (Vocabulary v : all) {
             int id = v.getId();

@@ -29,6 +29,13 @@ public final class SearchService {
         SearchService searchService = new SearchService();
 
         System.out.println("Search:");
-        System.out.println(searchService.search("aeyu"));
+        List<ScoredResult> result = searchService.search(args[0]);
+        if (result.isEmpty()) {
+            System.out.println("No results. Please check if all the characters in the query are known.");
+        } else {
+            for (ScoredResult r : result) {
+                System.out.println(r);
+            }
+        }
     }
 }

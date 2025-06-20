@@ -3,14 +3,12 @@ package com.aixuniversity.maadictionary.dao.index;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import com.aixuniversity.maadictionary.dao.utils.DatabaseHelper;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public final class CategoryPosIndex {
+public final class CategoryPosIndex implements SearchIndex<CategoryPosIndex.Key> {
     public record Key(int catId, byte syl, byte pos) {
     }
 
@@ -23,7 +21,7 @@ public final class CategoryPosIndex {
                 FROM VocabularyPhonemeCategory vpc
                 JOIN VocabularyPhoneme vp ON vpc.vocab_phoneme_id = vp.id
                 ORDER BY vpc.category_id, vp.syllableIndex, vp.posSyllable, vp.vocabularyId""";
-        try (Connection c = DatabaseHelper.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
+        try (PreparedStatement ps = db.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
             Key cur = null;
             IntArrayList list = null;

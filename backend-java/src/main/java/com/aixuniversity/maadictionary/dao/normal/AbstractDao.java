@@ -74,7 +74,10 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         ps.setObject(1, element);
 
         ResultSet rs = ps.executeQuery();
-        if (!rs.next() || rs.getFetchSize() != 1) {
+        if (!rs.next()) {
+            return null;
+        }
+        if (rs.getFetchSize() != 1) {
             throw new IllegalArgumentException("Multiple or no ids for element " + element.toString() + " in column " + columnKey);
         }
 

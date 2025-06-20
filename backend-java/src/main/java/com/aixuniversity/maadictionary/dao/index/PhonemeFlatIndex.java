@@ -1,7 +1,6 @@
 package com.aixuniversity.maadictionary.dao.index;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import com.aixuniversity.maadictionary.dao.utils.DatabaseHelper;
 
 import java.sql.SQLException;
 import java.util.Optional;
@@ -13,8 +12,7 @@ public final class PhonemeFlatIndex implements SearchFlatIndex<Integer> {
 
     public PhonemeFlatIndex() throws SQLException {
         var sql = "SELECT phonemeId, vocabularyId FROM VocabularyPhoneme ORDER BY phonemeId, vocabularyId";
-        try (var c = DatabaseHelper.getConnection();
-             var ps = c.prepareStatement(sql);
+        try (var ps = db.prepareStatement(sql);
              var rs = ps.executeQuery()) {
             IntArrayList list = null;
             int cur = -1;
