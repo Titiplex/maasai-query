@@ -1,5 +1,6 @@
 package com.aixuniversity.maadictionary.service;
 
+import com.aixuniversity.maadictionary.config.ImportStatus;
 import com.aixuniversity.maadictionary.dao.join.PhonemeCategoryDao;
 import com.aixuniversity.maadictionary.dao.join.VocabularyPhonemeCategoryDao;
 import com.aixuniversity.maadictionary.dao.join.VocabularyPhonemeDao;
@@ -10,6 +11,7 @@ import com.aixuniversity.maadictionary.model.Category;
 import com.aixuniversity.maadictionary.model.Phoneme;
 import com.aixuniversity.maadictionary.model.Syllable;
 import com.aixuniversity.maadictionary.model.Vocabulary;
+import com.aixuniversity.maadictionary.parser.extractors.SyllableExtractor;
 import com.aixuniversity.maadictionary.service.search.SyllablePattern;
 
 import java.sql.SQLException;
@@ -25,8 +27,19 @@ public final class IndexingService {
         VocabularyPhonemeCategoryDao vpcDao = new VocabularyPhonemeCategoryDao();
         PhonemeCategoryDao pcDao = new PhonemeCategoryDao();
 
-        for (Vocabulary v : vDao.getAll()) {
-            if (!vpDao.getLinkedIds(v.getId()).isEmpty()) continue;      // déjà indexé ⇒ skip
+        List<Integer> idListToIndex = ImportStatus.unindexedVocabularyIds();
+        int total = idListToIndex.size();
+        int done = 0;
+
+        // for (Vocabulary v : vDao.getAll()) {
+        for (int vid : idListToIndex) {
+            done++;
+            ImportStatus.ProgressBar.print(done, total);
+            Vocabulary v = vDao.searchById(vid);
+            int existing = vpDao.getLinkedIds(vid).size();
+            if (existing == SyllableExtractor.tokenizeIPAWord(v.getIpa()).size()) {
+                continue;
+            }
             // System.out.println("Indexing " + v.getEntry());
 
             int pos = 0;
@@ -61,6 +74,7 @@ public final class IndexingService {
                     }
                 }
             }
+            ImportStatus.markIndexed(vid);
         }
     }
 

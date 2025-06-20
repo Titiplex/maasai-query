@@ -2,6 +2,24 @@ DROP DATABASE `maa`;
 CREATE DATABASE `maa`;
 USE `maa`;
 
+-- Metadata
+
+CREATE TABLE `ImportStatus`
+(
+    `source`         VARCHAR(100) PRIMARY KEY,
+    `last_import_on` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `payload_hash`   CHAR(64)  NULL -- SHA-256 of the raw file/response
+);
+
+CREATE TABLE VocabularyAudit
+(
+    `vocabulary_id` INT PRIMARY KEY,
+    `last_modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `last_indexed`  TIMESTAMP NULL
+);
+
+-- Linguistics related Tables
+
 -- Table for languages
 CREATE TABLE `Language`
 (
@@ -190,6 +208,8 @@ CREATE TABLE `VocabularyDialect`
             ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
+
+-- Indexation Tables
 
 -- Table Phoneme
 CREATE TABLE `Phoneme`

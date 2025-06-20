@@ -1,5 +1,6 @@
 package com.aixuniversity.maadictionary.service;
 
+import com.aixuniversity.maadictionary.config.ImportStatus;
 import com.aixuniversity.maadictionary.dao.join.*;
 import com.aixuniversity.maadictionary.dao.normal.*;
 import com.aixuniversity.maadictionary.model.*;
@@ -31,9 +32,16 @@ public abstract class ImportService {
             VocabularyLinkedDao vocLinkedDao = new VocabularyLinkedDao();
             VocabularyDialectDao vocabularyDialectDao = new VocabularyDialectDao();
 
+            int total = vocabularyList.size();
+            int done  = 0;
+
             for (Vocabulary vocabulary : vocabularyList) {
                 vocabulary.setId(vocabularyIntegerMap.get(vocabulary));
                 vocabulary.setAllIds();
+
+                ImportStatus.markModified(vocabulary.getId());
+                done++;
+                ImportStatus.ProgressBar.print(done, total);
 
                 List<Meaning> meanings = vocabulary.getMeanings();
                 Map<Meaning, Integer> meaningsIntegerMap = meaningDao.insertAll(meanings);
