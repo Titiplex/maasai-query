@@ -2,8 +2,7 @@ package com.aixuniversity.maadictionary.service.search;
 
 import com.aixuniversity.maadictionary.dao.normal.VocabularyDao;
 import com.aixuniversity.maadictionary.model.Vocabulary;
-import com.aixuniversity.maadictionary.service.search.tokens.TokImpossible;
-import com.aixuniversity.maadictionary.service.search.tokens.Token;
+import com.aixuniversity.maadictionary.service.search.tokens.*;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -33,6 +32,19 @@ public final class SimpleSequentialSearcher implements Searcher<String> {
         // 1) ordre séquentiel tel qu’écrit dans la requête
         List<Token> tokens = pat.tokens();
 
+        /* --- début de mot ? -------------------------------------------- */
+        if (!tokens.isEmpty() && tokens.getFirst() instanceof TokStart) {
+            tokens = tokens.subList(1, tokens.size());   // on l’enlève
+            // ⇒ pas besoin de test spécial : la 1ʳᵉ vraie contrainte porte
+        }
+
+        /* --- fin de mot ?  --------------------------------------------- */
+        boolean needEnd = false;
+        if (!tokens.isEmpty() && tokens.getLast() instanceof TokEnd) {
+            tokens = tokens.subList(0, tokens.size() - 1);
+            needEnd = true;
+        }
+
         // 2) ensemble-candidat initial (copie modifiable)
         IntSet ids = lookup.idsFor(tokens.getFirst());
 
@@ -48,11 +60,29 @@ public final class SimpleSequentialSearcher implements Searcher<String> {
         }
 
         // 4) transformation en Vocabulaire (ordre arbitraire)
+        // 3) filtrage progressif — inchangé
+
+        /* --- ancrage fin de mot (exact nbr de syllabes) --------------- */
+        if (needEnd && !ids.isEmpty()) {
+            IntIterator it = ids.iterator();
+            int neededSyls = tokens.stream()
+                    .filter(t -> t instanceof TokCatPos || t instanceof TokPhonPos)
+                    .mapToInt(t -> ((PosToken) t).syl())       // interface PosToken { byte syl(); }
+                    .max().orElse(-1) + 1;
+            while (it.hasNext()) {
+                int id = it.nextInt();
+                String[] s = vDao.searchById(id).getSyll_pattern().split("-");
+                if (s.length != neededSyls) it.remove();
+            }
+        }
+
+        /* 4) transformation -------------------------------------------- */
         List<Vocabulary> out = new ArrayList<>();
         ids.forEach(id -> {
             try {
                 out.add(vDao.searchById(id));
-            } catch (SQLException e) { /* noop */ }
+            } catch (SQLException ignored) {
+            }
         });
         return out;
     }

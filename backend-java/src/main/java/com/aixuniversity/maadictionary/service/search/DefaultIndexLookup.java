@@ -36,6 +36,7 @@ public class DefaultIndexLookup implements IndexLookup {
                         a.addAll(b);
                         return a;
                     });
+            case TokStart _, TokEnd _ -> new IntOpenHashSet(phFlat.allIds());
             default /* TokAny */ -> new IntOpenHashSet(phFlat.allIds());
         };
     }

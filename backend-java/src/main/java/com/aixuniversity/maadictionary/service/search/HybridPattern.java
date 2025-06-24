@@ -27,23 +27,66 @@ public final class HybridPattern {
 
     // ------------- PARSE -------------
     public static HybridPattern parse(String raw) throws SQLException {
-        raw = raw.replace('.', '-');        // unifie les séparateurs syllabiques
+
+        boolean anchoredStart = raw.startsWith("#");
+        boolean anchoredEnd = raw.endsWith("#");
+        if (anchoredStart) raw = raw.substring(1);
+        if (anchoredEnd) raw = raw.substring(0, raw.length() - 1);
+
+    /* on découpe UNIQUEMENT sur les points (.) expli­cites,
+           pas sur les traits d’union (qui n’apparaissent plus côté user). */
+        String[] segments = raw.split("\\.");
+
         List<Token> list = new ArrayList<>();
         byte syl = 0;
-        for (String syllSeg : raw.split("-")) {
-            boolean explicitPos = syllSeg.contains("|");
-            String[] items = explicitPos ? syllSeg.split("\\|") : new String[]{syllSeg};
-            byte pos = 0;
+        for (String seg : segments) {
+
+            boolean explicitPos = seg.contains("|");
+            String[] items = explicitPos ? seg.split("\\|") : seg.split("(?!^)"); // une lettre == un item
+
+            // ➜ si l’utilisateur n’a PAS mis de '.', on créera des Tok*Flat (pas de position).
             for (String item : items) {
                 if (item.isBlank()) continue;
-                list.add(tokenFromString(item.trim(), syl, explicitPos ? pos : null));
-                if (explicitPos) pos++;
+                Byte pos = explicitPos ? (byte) Arrays.asList(items).indexOf(item) : null;
+                // si seg contient '.', item hérite de syl ; sinon syl = -1   (cf. tokenFromStringV2)
+                list.add(tokenFromStringV2(item.trim(),
+                        explicitPos ? syl : (byte) -1,
+                        pos));
             }
-            // si le segment était vide (cas "|" double) on incrémente quand même la syll index
-            syl++;
+            syl++;                         // passe à la syllabe suivante SEULEMENT quand il y a un '.'
         }
+
+        if (anchoredStart) list.addFirst(new TokStart());
+        if (anchoredEnd) list.add(new TokEnd());
+
         return new HybridPattern(list);
     }
+
+    private static Token tokenFromStringV2(String s, byte syl, Byte pos) throws SQLException {
+        boolean noSyl = syl < 0;                   // pas de '.' imposé
+        if (s.equals("?")) return new TokAny();
+
+        if (s.startsWith("[") && s.endsWith("]")) {
+            List<Token> opts = new ArrayList<>();
+            for (String o : s.substring(1, s.length() - 1).split("[ ,]"))
+                if (!o.isBlank()) opts.add(tokenFromStringV2(o.trim(), syl, pos));
+            return new TokChoice(opts, noSyl ? -1 : syl, pos);
+        }
+
+        boolean isCat = Character.isUpperCase(s.charAt(0));
+        if (isCat) {
+            Integer cid = new CategoryDao().searchIdOfUniqueElement(s, "abbr");
+            if (cid == null) return new TokImpossible();
+            return noSyl ? new TokCatFlat(cid)
+                    : pos != null ? new TokCatPos(cid, syl, pos) : new TokCatFlat(cid);
+        } else {
+            Integer pid = new PhonemeDao().searchIdOfUniqueElement(s, "ipa");
+            if (pid == null) return new TokImpossible();
+            return noSyl ? new TokPhonFlat(pid)
+                    : pos != null ? new TokPhonPos(pid, syl) : new TokPhonFlat(pid);
+        }
+    }
+
 
     private static Token tokenFromString(String s, byte syl, Byte pos) throws SQLException {
         if (s.equals("?")) return new TokAny();
@@ -170,6 +213,8 @@ public final class HybridPattern {
                         }
                 yield ok;
             }
+            case TokStart _ -> true;  // le filtrage séquentiel assure qu’il est 1ᵉʳ
+            case TokEnd _ -> true;  // sera évalué en dernier → fin de motif
             case TokImpossible ignored -> false;
         };
     }
