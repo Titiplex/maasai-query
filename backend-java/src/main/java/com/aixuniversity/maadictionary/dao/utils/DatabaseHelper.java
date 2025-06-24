@@ -3,6 +3,7 @@ package com.aixuniversity.maadictionary.dao.utils;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.Properties;
 
 public abstract class DatabaseHelper {
@@ -16,19 +17,33 @@ public abstract class DatabaseHelper {
     public static synchronized Connection getConnection() {
         try {
             if (conn == null || conn.isClosed()) {
-                Properties props = new Properties();
-                props.setProperty("user",     USER);
-                props.setProperty("password", PASSWORD);
-                // généralement la database est déjà dans l’URL ; sinon :
-                props.setProperty("database", DATABASE);
+                String url = Optional.ofNullable(URL)
+                        .orElse("jdbc:mariadb://localhost/maa");
+                Properties props = getProperties();
 
-                conn = DriverManager.getConnection(URL, props);
+                conn = DriverManager.getConnection(url, props);
                 System.out.println("Database connection established.");
             }
             return conn;
         } catch (SQLException e) {
             throw new RuntimeException("Unable to obtain DB connection", e);
         }
+    }
+
+    private static Properties getProperties() {
+        String user = Optional.ofNullable(USER)
+                .orElse("root");
+        String password = Optional.ofNullable(PASSWORD)
+                .orElse("");
+        String database = Optional.ofNullable(DATABASE)
+                .orElse("");
+
+        Properties props = new Properties();
+        props.setProperty("user", user);
+        props.setProperty("password", password);
+        // généralement la database est déjà dans l’URL ; sinon :
+        props.setProperty("database", database);
+        return props;
     }
 
     /**

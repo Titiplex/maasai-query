@@ -12,9 +12,24 @@ public class Category extends AbstractModel {
 
     private static final Map<String, Category> categories = new HashMap<>();
 
+    static {
+        try {
+            new CategoryDao().getAll().forEach(Category::addCategory);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private int freq = 0;
     private String name;
     private String abbr;
+
+    public Category() {
+        super();
+        this.name = "";
+        this.abbr = "";
+        addCategory(this);
+    }
 
     public Category(String name, String abbr) {
         this.name = name;

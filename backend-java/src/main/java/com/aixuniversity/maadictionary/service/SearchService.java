@@ -1,16 +1,18 @@
 package com.aixuniversity.maadictionary.service;
 
 import com.aixuniversity.maadictionary.model.Vocabulary;
-import com.aixuniversity.maadictionary.service.search.FlexibleSearcher;
+import com.aixuniversity.maadictionary.service.search.Searcher;
+import com.aixuniversity.maadictionary.service.search.SimpleSequentialSearcher;
 import com.aixuniversity.maadictionary.service.tfidf.ApproximateSearcher;
 import com.aixuniversity.maadictionary.service.tfidf.ScoredResult;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class SearchService {
-    private final FlexibleSearcher exact = new FlexibleSearcher();
+    private final Searcher<String> exact = new SimpleSequentialSearcher();
     private final ApproximateSearcher approx = new ApproximateSearcher();
 
     public SearchService() throws SQLException {
@@ -41,7 +43,12 @@ public final class SearchService {
                     if (results.isEmpty()) {
                         System.out.println("No results. Please check if all the characters in the query are known.");
                     } else {
-                        results.forEach(System.out::println);
+                        System.out.println("Found " + results.size() + " result(s) :");
+                        AtomicInteger i = new AtomicInteger(1);
+                        results.forEach(r -> {
+                            System.out.println(i + ". " + r);
+                            i.getAndIncrement();
+                        });
                     }
                 } catch (SQLException e) {
                     System.err.println("Search failed: " + e.getMessage());

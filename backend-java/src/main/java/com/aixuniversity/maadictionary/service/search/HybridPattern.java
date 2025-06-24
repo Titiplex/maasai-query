@@ -6,7 +6,6 @@ import com.aixuniversity.maadictionary.dao.index.PhonemeFlatIndex;
 import com.aixuniversity.maadictionary.dao.index.PhonemePosIndex;
 import com.aixuniversity.maadictionary.dao.normal.CategoryDao;
 import com.aixuniversity.maadictionary.dao.normal.PhonemeDao;
-import com.aixuniversity.maadictionary.model.Phoneme;
 import com.aixuniversity.maadictionary.model.Vocabulary;
 import com.aixuniversity.maadictionary.service.search.tokens.*;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -17,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-public class HybridPattern {
+public final class HybridPattern {
     public final List<Token> tokens;
     private final CategoryDao cDao = new CategoryDao();
     private final PhonemeDao pDao = new PhonemeDao();
@@ -66,7 +65,6 @@ public class HybridPattern {
             if (pos != null) return new TokCatPos(cid, syl, pos);
             else return new TokCatFlat(cid);
         } else {
-            System.out.println(Phoneme.getPhonemeList());
             Integer pid = new PhonemeDao().searchIdOfUniqueElement(s, "ipa");
             if (pid == null) {
                 return new TokImpossible();
@@ -144,7 +142,7 @@ public class HybridPattern {
                 yield Arrays.stream(syls[p.syl()].split("\\|"))
                         .anyMatch(s -> {
                             try {
-                                return s.startsWith("!" + pDao.searchById(p.phon()));
+                                return s.startsWith("!" + ipaOf(p.phon()));
                             } catch (SQLException e) {
                                 throw new RuntimeException(e);
                             }
@@ -162,7 +160,7 @@ public class HybridPattern {
                 yield ok;
             }
             case TokPhonFlat f -> {
-                String sym = "!" + pDao.searchById(f.phon());
+                String sym = "!" + ipaOf(f.phon());
                 boolean ok = false;
                 for (String s : syls)
                     for (String ph : s.split("\\|"))
@@ -192,5 +190,9 @@ public class HybridPattern {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private String ipaOf(int phonId) throws SQLException {
+        return pDao.searchById(phonId).getIpa();
     }
 }

@@ -36,6 +36,7 @@ public final class CategoryPosIndex implements SearchIndex<CategoryPosIndex.Key>
             }
         }
         posting.forEach((k, l) -> freq.put(k, l.size()));
+//        System.out.println("catposind : "+posting + "\n" + freq);
     }
 
     public IntArrayList idsFor(Key k) {

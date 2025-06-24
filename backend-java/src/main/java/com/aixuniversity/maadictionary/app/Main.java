@@ -5,24 +5,27 @@ import com.aixuniversity.maadictionary.model.Vocabulary;
 import com.aixuniversity.maadictionary.parser.HtmlParser;
 import com.aixuniversity.maadictionary.service.ImportService;
 import com.aixuniversity.maadictionary.service.IndexingService;
-import com.aixuniversity.maadictionary.service.SearchService;
-import com.aixuniversity.maadictionary.service.tfidf.ScoredResult;
+import com.aixuniversity.maadictionary.service.search.Searcher;
+import com.aixuniversity.maadictionary.service.search.SimpleSequentialSearcher;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        String baseUrl = "https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/";
+//        String baseUrl = "https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/";
 
-        System.out.println("Processing...");
-        System.out.println("Result : " + (process(baseUrl) ? "OK" : "KO"));
+//        System.out.println("Processing...");
+//        System.out.println("Result : " + (process(baseUrl) ? "OK" : "KO"));
 
-        SearchService.main(new String[]{""});
+//        SearchService.main(new String[]{""});
+        Searcher<String> s = new SimpleSequentialSearcher();
+        for (String q : List.of("u", "C|V", "[u i]-V")) {
+            System.out.println(q + " → " + s.search(q).size() + " résultats");
+        }
     }
 
     public static boolean process(String url) {

@@ -1,13 +1,14 @@
 package com.aixuniversity.maadictionary.dao.index;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.sql.SQLException;
-import java.util.Optional;
 
 public final class PhonemeFlatIndex implements SearchFlatIndex<Integer> {
-    private final it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap<Integer, IntArrayList> post = new it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap<>();
-    private final it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap<Integer> freq = new it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap<>();
+    private final Object2ObjectOpenHashMap<Integer, IntArrayList> post = new Object2ObjectOpenHashMap<>();
+    private final Object2IntOpenHashMap<Integer> freq = new Object2IntOpenHashMap<>();
     private int total = 0;
 
     public PhonemeFlatIndex() throws SQLException {
@@ -29,6 +30,7 @@ public final class PhonemeFlatIndex implements SearchFlatIndex<Integer> {
             }
         }
         post.forEach((k, l) -> freq.put(k, l.size()));
+//        System.out.println("phonflatind : " + post + "\n" + freq + "\n" + total);
     }
 
     @Override
@@ -38,7 +40,7 @@ public final class PhonemeFlatIndex implements SearchFlatIndex<Integer> {
 
     @Override
     public int frequency(Integer pid) {
-        return freq.getOrDefault(Optional.of(pid), 0);
+        return freq.getOrDefault(pid, 1);
     }
 
     @Override

@@ -72,7 +72,6 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
         PreparedStatement ps = conn.prepareStatement(query);
 
         ps.setObject(1, element);
-        System.out.println(ps);
 
         ResultSet rs = ps.executeQuery();
         if (!rs.next()) {
@@ -81,8 +80,6 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
 //        if (rs.getFetchSize() != 1) {
 //            throw new IllegalArgumentException("Multiple or no ids for element " + element.toString() + " in column " + columnKey);
 //        }
-        System.out.println("fetch " + rs.getFetchSize());
-        System.out.println(rs.getInt(1));
 
         return (rs.getInt(1));
     }

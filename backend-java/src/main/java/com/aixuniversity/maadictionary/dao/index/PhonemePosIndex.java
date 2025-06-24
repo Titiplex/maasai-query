@@ -35,6 +35,7 @@ public final class PhonemePosIndex implements SearchIndex<PhonemePosIndex.Key> {
             }
             posting.forEach((k, l) -> freq.put(k, l.size()));
         }
+//        System.out.println("phonposind : "+posting + "\n" + freq);
     }
 
     public IntArrayList idsFor(Key k) {

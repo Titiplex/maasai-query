@@ -59,7 +59,6 @@ public final class IndexingService {
                     String tok = toks.get(i);
                     Phoneme ph = Phoneme.getOrCreateSQL(tok, pDao);
                     // System.out.println(ph);
-                    ph.addFreq();
 
                     int vpId = (int) vpDao.insertLink(v.getId(), ph.getId(), pos++, i, indexSyll);
 
@@ -68,13 +67,30 @@ public final class IndexingService {
                     for (String abbr : catAbbrs) {
                         Category cat = Category.getOrCreate(abbr, cDao);
                         // System.out.println(cat);
-                        cat.addFreq();
                         pcDao.insertLink(ph.getId(), cat.getId());
                         vpcDao.insertLink(vpId, cat.getId(), i, indexSyll);
                     }
                 }
             }
             ImportStatus.markIndexed(vid);
+        }
+
+       updateFrequencies();
+    }
+
+    private static void updateFrequencies() {
+        PhonemeDao pDao = new PhonemeDao();
+        CategoryDao cDao = new CategoryDao();
+        // update frequencies ?
+        try {
+            for(Phoneme ph : Phoneme.getPhonemeList().values()) {
+                pDao.update(ph);
+            }
+            for(Category cat : Category.getCategoryList().values()) {
+                cDao.update(cat);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error while updating frequencies: " + e.getMessage());
         }
     }
 

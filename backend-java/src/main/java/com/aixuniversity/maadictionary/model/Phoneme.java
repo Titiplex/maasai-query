@@ -11,14 +11,31 @@ import java.util.Objects;
 public class Phoneme extends AbstractModel {
     private static final Map<String, Phoneme> phonemes = new HashMap<>();
 
-    private int freq = 0;
+    static {
+        try {
+            new PhonemeDao().getAll().forEach(Phoneme::addPhoneme);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private int freq;
     private String code;
     private String ipa;
+
+    public Phoneme() {
+        super();
+        this.code = "";
+        this.ipa = "";
+        this.freq = 0;
+        addPhoneme(this);
+    }
 
     public Phoneme(String code, String ipa) {
         super();
         this.code = code;
         this.ipa = ipa;
+        this.freq = 1;
         addPhoneme(this);
     }
 
@@ -29,6 +46,7 @@ public class Phoneme extends AbstractModel {
 
         Phoneme existing = getPhoneme(tok);
         if (existing != null) {
+            existing.addFreq();
             return existing;
         }
 
