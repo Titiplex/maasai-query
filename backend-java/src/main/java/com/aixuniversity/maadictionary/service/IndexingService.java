@@ -75,7 +75,7 @@ public final class IndexingService {
             ImportStatus.markIndexed(vid);
         }
 
-       updateFrequencies();
+        updateFrequencies();
     }
 
     private static void updateFrequencies() {
@@ -83,10 +83,10 @@ public final class IndexingService {
         CategoryDao cDao = new CategoryDao();
         // update frequencies ?
         try {
-            for(Phoneme ph : Phoneme.getPhonemeList().values()) {
+            for (Phoneme ph : Phoneme.getPhonemeList().values()) {
                 pDao.update(ph);
             }
-            for(Category cat : Category.getCategoryList().values()) {
+            for (Category cat : Category.getCategoryList().values()) {
                 cDao.update(cat);
             }
         } catch (SQLException e) {

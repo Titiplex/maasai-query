@@ -15,15 +15,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class HybridPattern {
     public final List<Token> tokens;
     private final CategoryDao cDao = new CategoryDao();
     private final PhonemeDao pDao = new PhonemeDao();
 
-    private HybridPattern(List<Token> t) {
+    private final int segmentCount;
+
+    private HybridPattern(List<Token> t, int segs) {
         tokens = t;
-    }  // immuable
+        segmentCount = segs;
+    }
+
+    public int segmentCount() {
+        return segmentCount;
+    }
 
     // ------------- PARSE -------------
     public static HybridPattern parse(String raw) throws SQLException {
@@ -42,7 +51,12 @@ public final class HybridPattern {
         for (String seg : segments) {
 
             boolean explicitPos = seg.contains("|");
-            String[] items = explicitPos ? seg.split("\\|") : seg.split("(?!^)"); // une lettre == un item
+            String[] items;
+            if (explicitPos) {
+                items = seg.split("\\|");
+            } else {
+                items = splitSmart(seg).toArray(String[]::new);
+            }
 
             // ➜ si l’utilisateur n’a PAS mis de '.', on créera des Tok*Flat (pas de position).
             for (String item : items) {
@@ -59,32 +73,78 @@ public final class HybridPattern {
         if (anchoredStart) list.addFirst(new TokStart());
         if (anchoredEnd) list.add(new TokEnd());
 
-        return new HybridPattern(list);
+        return new HybridPattern(list, segments.length);
     }
 
+    /**
+     * Construit un Token à partir d’une écriture utilisateur.
+     * -  s  : lexème brut (sans espace)
+     * - syl : index de syllabe, ou -1 si aucune syllabe imposée
+     * - pos : position intra-syllabe (null si non imposée)
+     */
     private static Token tokenFromStringV2(String s, byte syl, Byte pos) throws SQLException {
-        boolean noSyl = syl < 0;                   // pas de '.' imposé
+
+        /* ─── 1. Joker « ? » (exactement 1 occurrence) ─────────────────── */
         if (s.equals("?")) return new TokAny();
 
-        if (s.startsWith("[") && s.endsWith("]")) {
-            List<Token> opts = new ArrayList<>();
-            for (String o : s.substring(1, s.length() - 1).split("[ ,]"))
-                if (!o.isBlank()) opts.add(tokenFromStringV2(o.trim(), syl, pos));
-            return new TokChoice(opts, noSyl ? -1 : syl, pos);
+        /* ─── 2. Détection d’un quantificateur suffixe ─────────────────── */
+        char last = s.charAt(s.length() - 1);
+        boolean hasQuant = s.length() > 1 && (last == '+' || last == '*' || last == '?');
+
+        String core = hasQuant ? s.substring(0, s.length() - 1) : s;   // sans le quantif.
+        boolean noSyl = syl < 0;                                       // syllabe non fixée
+
+        /* ─── 3. Construction du token « de base » (hors quantif.) ────── */
+        Token base;
+
+        // 3-a  Liste d’alternatives  [ … ]
+        if (core.startsWith("[") && core.endsWith("]")) {
+            List<Token> options = new ArrayList<>();
+            for (String opt : core.substring(1, core.length() - 1).split("[ ,]"))
+                if (!opt.isBlank())
+                    options.add(tokenFromStringV2(opt.trim(), syl, pos));   // récursif
+            base = new TokChoice(options, noSyl ? (byte) -1 : syl, pos);
+
+        } else {                                   // 3-b  Catégorie ou Phonème
+            boolean isCat = Character.isUpperCase(core.charAt(0));
+
+            if (isCat) {                           // ---- Catégorie
+                Integer cid = new CategoryDao().searchIdOfUniqueElement(core, "abbr");
+                if (cid == null) return new TokImpossible();
+
+                base = noSyl ? new TokCatFlat(cid)
+                        : pos != null ? new TokCatPos(cid, syl, pos)
+                        : new TokCatFlat(cid);     // pas de pos ⇒ flat même syllabe
+
+            } else {                               // ---- Phonème
+                Integer pid = new PhonemeDao().searchIdOfUniqueElement(core, "ipa");
+                if (pid == null) return new TokImpossible();
+
+                base = noSyl ? new TokPhonFlat(pid)
+                        : pos != null ? new TokPhonPos(pid, syl)
+                        : new TokPhonFlat(pid);
+            }
         }
 
-        boolean isCat = Character.isUpperCase(s.charAt(0));
-        if (isCat) {
-            Integer cid = new CategoryDao().searchIdOfUniqueElement(s, "abbr");
-            if (cid == null) return new TokImpossible();
-            return noSyl ? new TokCatFlat(cid)
-                    : pos != null ? new TokCatPos(cid, syl, pos) : new TokCatFlat(cid);
-        } else {
-            Integer pid = new PhonemeDao().searchIdOfUniqueElement(s, "ipa");
-            if (pid == null) return new TokImpossible();
-            return noSyl ? new TokPhonFlat(pid)
-                    : pos != null ? new TokPhonPos(pid, syl) : new TokPhonFlat(pid);
+        /* ─── 4. Application éventuelle du quantificateur ─────────────── */
+        if (!hasQuant) return base;                // simple
+
+        int min, max;
+        switch (last) {
+            case '+' -> {
+                min = 1;
+                max = Integer.MAX_VALUE;
+            }
+            case '*' -> {
+                min = 0;
+                max = Integer.MAX_VALUE;
+            }
+            default -> {
+                min = 0;
+                max = 1;
+            }     // suffixe '?'
         }
+        return new TokRepeat(base, min, max);
     }
 
 
@@ -185,7 +245,7 @@ public final class HybridPattern {
                 yield Arrays.stream(syls[p.syl()].split("\\|"))
                         .anyMatch(s -> {
                             try {
-                                return s.startsWith("!" + ipaOf(p.phon()));
+                                return s.startsWith(ipaOf(p.phon()));
                             } catch (SQLException e) {
                                 throw new RuntimeException(e);
                             }
@@ -203,7 +263,7 @@ public final class HybridPattern {
                 yield ok;
             }
             case TokPhonFlat f -> {
-                String sym = "!" + ipaOf(f.phon());
+                String sym = ipaOf(f.phon());
                 boolean ok = false;
                 for (String s : syls)
                     for (String ph : s.split("\\|"))
@@ -215,6 +275,11 @@ public final class HybridPattern {
             }
             case TokStart _ -> true;  // le filtrage séquentiel assure qu’il est 1ᵉʳ
             case TokEnd _ -> true;  // sera évalué en dernier → fin de motif
+            case TokRepeat r -> {
+                int found = countOccurrences(r.base(), syls);
+                yield found >= r.min() && found <= r.max();
+            }
+
             case TokImpossible ignored -> false;
         };
     }
@@ -231,7 +296,7 @@ public final class HybridPattern {
      */
     public static boolean tokenOkStatic(Token t, String[] syll) {
         try {
-            return new HybridPattern(java.util.List.of(t)).tokenOk(t, syll);
+            return new HybridPattern(java.util.List.of(t), syll.length).tokenOk(t, syll);
         } catch (Exception e) {
             return false;
         }
@@ -240,4 +305,30 @@ public final class HybridPattern {
     private String ipaOf(int phonId) throws SQLException {
         return pDao.searchById(phonId).getIpa();
     }
+
+    private int countOccurrences(Token base, String[] syllables) throws SQLException {
+        int count = 0;
+        for (String syl : syllables) {
+            for (String phon : syl.split("\\|")) {
+                if (tokenOk(base, new String[]{phon})) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    // liste [...] + quantificateur optionnel
+    // suite de lettres (A-Z, a-z, IPA) + quantif. optionnel
+    private static final Pattern TOKEN_RX =
+            Pattern.compile("\\[[^]]+][+*?]?" + "|\\p{L}+[+*?]?" + "|.");
+
+
+    private static List<String> splitSmart(String seg) {
+        List<String> out = new ArrayList<>();
+        Matcher m = TOKEN_RX.matcher(seg);
+        while (m.find()) out.add(m.group());
+        return out;
+    }
+
 }

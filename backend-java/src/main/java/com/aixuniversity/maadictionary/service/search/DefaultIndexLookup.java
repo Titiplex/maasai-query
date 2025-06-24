@@ -37,6 +37,13 @@ public class DefaultIndexLookup implements IndexLookup {
                         return a;
                     });
             case TokStart _, TokEnd _ -> new IntOpenHashSet(phFlat.allIds());
+            case TokRepeat r -> {
+                if (r.min() == 0) {
+                    yield new IntOpenHashSet(phFlat.allIds()); // aucune contrainte
+                } else {
+                    yield new IntOpenHashSet(idsFor(r.base())); // au moins 1 occurrence
+                }
+            }
             default /* TokAny */ -> new IntOpenHashSet(phFlat.allIds());
         };
     }

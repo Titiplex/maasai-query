@@ -23,7 +23,7 @@ public class Main {
 
 //        SearchService.main(new String[]{""});
         Searcher<String> s = new SimpleSequentialSearcher();
-        for (String q : List.of("u", "C|V", "[u i]-V")) {
+        for (String q : List.of("u", "VO#", "VO+")) {
             System.out.println(q + " → " + s.search(q).size() + " résultats");
         }
     }
