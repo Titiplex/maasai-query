@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="/css/style.css"/>
+    <title>Maa Dictionary – Search</title>
+</head>
+<body>
+<div class="card">
+    <h1>Maa Dictionary</h1>
+    <form id="search-form" autocomplete="off">
+        <label for="q"></label><input type="text" id="q" name="q" placeholder="Enter a word…" autofocus/>
+        <button type="submit">Search</button>
+    </form>
+
+    <div id="info"></div>
+    <div id="loader" class="loader hidden"></div>
+    <ul id="out"></ul>
+</div>
+
+<script>
+    (function () {
+        const form = document.getElementById('search-form');
+        const input = document.getElementById('q');
+        const list = document.getElementById('out');
+        const info = document.getElementById('info');
+        const loader = document.getElementById('loader');
+
+        // Helper
+        const showLoader = (show) => {
+            loader.classList.toggle('hidden', !show);
+        };
+
+        const createResultItem = ({form: word, gloss}) => {
+            const li = document.createElement('li');
+            li.className = 'result';
+
+            const wordSpan = document.createElement('span');
+            wordSpan.textContent = word;
+
+            const glossSpan = document.createElement('span');
+            glossSpan.textContent = gloss;
+            glossSpan.className = 'gloss';
+
+            li.appendChild(wordSpan);
+            li.appendChild(glossSpan);
+            return li;
+        };
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = input.value.trim();
+            if (!query) {
+                info.textContent = 'Please enter a word to search.';
+                list.innerHTML = '';
+                return;
+            }
+
+            try {
+                showLoader(true);
+                info.textContent = '';
+                list.innerHTML = '';
+
+                const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                if (!res.ok) {
+                    // noinspection ExceptionCaughtLocallyJS
+                    throw new Error(`Server error: ${res.status}`);
+                }
+
+                const data = await res.json();
+                if (data.length === 0) {
+                    info.textContent = 'No results found.';
+                    return;
+                }
+
+                info.textContent = `Found ${data.length} result${data.length > 1 ? 's' : ''}:`;
+                data.forEach((item) => list.appendChild(createResultItem(item)));
+            } catch (err) {
+                console.error(err);
+                info.textContent = 'Search failed. Please try again later.';
+            } finally {
+                showLoader(false);
+            }
+        });
+    })();
+</script>
+</body>
+</html>

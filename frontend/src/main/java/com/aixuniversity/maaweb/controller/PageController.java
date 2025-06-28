@@ -18,7 +18,7 @@ public class PageController {
 
     /** Formulaire vide */
     @GetMapping("/")
-    public String home() { return "search"; }
+    public String home() { return "index"; }
 
     /** Traitement du formulaire */
     @PostMapping("/search")
@@ -26,6 +26,6 @@ public class PageController {
         var results = searchService.search(q);
         model.addAttribute("q", q);
         model.addAttribute("results", results);
-        return "search";            // ré-affiche la même page avec les données
+        return "index";            // ré-affiche la même page avec les données
     }
 }
