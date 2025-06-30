@@ -23,9 +23,10 @@ public class Main {
 
 //        SearchService.main(new String[]{""});
         Searcher<String> s = new SimpleSequentialSearcher();
-        for (String q : List.of("u", "VO#", "VO+")) {
-            System.out.println(q + " → " + s.search(q).size() + " résultats");
-        }
+//        for (String q : List.of("u", "VO#", "VO+")) {
+//            System.out.println(q + " → " + s.search(q).size() + " résultats");
+//        }
+        System.out.println(s.search("VO#"));
     }
 
     public static boolean process(String url) {

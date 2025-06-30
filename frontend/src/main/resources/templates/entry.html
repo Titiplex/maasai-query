@@ -1,0 +1,73 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Maa Dictionary – Entry</title>
+    <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="page">
+    <a href="/">Home Page</a>
+    <h2 id="word"></h2>
+    <p id="gloss"></p>
+
+    <section id="meanings-sec" hidden>
+        <h3>Meanings</h3>
+        <ul id="meanings"></ul>
+    </section>
+
+    <section id="examples-sec" hidden>
+        <h3>Examples</h3>
+        <ul id="examples"></ul>
+    </section>
+</div>
+
+<script>
+    // Essaye d'abord dans le chemin /entry/xxxx
+    const pathMatch = location.pathname.match(/\/entry\/(\d+)/);
+    let id = pathMatch ? pathMatch[1] : null;
+
+    // Retombe sur ?id=xxxx si on t'accède en statique
+    if (!id) {
+        id = new URLSearchParams(location.search).get("id");
+    }
+
+    if (!id) {
+        document.body.innerHTML = "<p>Missing id parameter</p>";
+        throw new Error("No id");
+    }
+
+    fetch(`/api/vocab/${id}`)
+        .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+        .then(fill)
+        .catch((err) => {
+            document.body.innerHTML = `<p>Error ${err}</p>`;
+        });
+
+    function fill(data) {
+        document.getElementById("word").textContent = data.form;
+        document.getElementById("gloss").textContent = data.meanings.join(", ");
+
+        if (data.meanings && data.meanings.length) {
+            const ul = document.getElementById("meanings");
+            data.meanings.forEach((m) => {
+                const li = document.createElement("li");
+                li.textContent = m;
+                ul.appendChild(li);
+            });
+            document.getElementById("meanings-sec").hidden = false;
+        }
+
+        if (data.examples && data.examples.length) {
+            const ul = document.getElementById("examples");
+            data.examples.forEach((ex) => {
+                const li = document.createElement("li");
+                li.textContent = ex;
+                ul.appendChild(li);
+            });
+            document.getElementById("examples-sec").hidden = false;
+        }
+    }
+</script>
+</body>
+</html>

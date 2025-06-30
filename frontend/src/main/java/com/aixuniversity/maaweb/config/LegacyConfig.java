@@ -1,4 +1,3 @@
-// maasai-web/src/main/java/com/aixuniversity/maadictionary/web/LegacyConfig.java
 package com.aixuniversity.maaweb.config;
 
 import com.aixuniversity.maadictionary.service.SearchService;

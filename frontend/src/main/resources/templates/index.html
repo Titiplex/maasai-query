@@ -3,87 +3,103 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Maa Dictionary – Search</title>
     <link rel="stylesheet" href="/css/style.css"/>
-    <title>Maa Dictionary – Search</title>
 </head>
 <body>
-<div class="card">
+<div class="page">
     <h1>Maa Dictionary</h1>
-    <form id="search-form" autocomplete="off">
-        <label for="q"></label><input type="text" id="q" name="q" placeholder="Enter a word…" autofocus/>
+
+    <form id="f" class="search-box">
+        <label class="hidden" for="q">Search</label>
+        <input id="q" name="q" placeholder="word…" autofocus/>
         <button type="submit">Search</button>
     </form>
 
-    <div id="info"></div>
-    <div id="loader" class="loader hidden"></div>
-    <ul id="out"></ul>
+    <p id="status" class="msg"></p>
+    <ul id="out" class="results"></ul>
+
+    <div class="pagination" id="pager" hidden>
+        <button id="prev">&larr; Prev</button>
+        <span id="page-info"></span>
+        <button id="next">Next &rarr;</button>
+    </div>
 </div>
 
 <script>
-    (function () {
-        const form = document.getElementById('search-form');
-        const input = document.getElementById('q');
-        const list = document.getElementById('out');
-        const info = document.getElementById('info');
-        const loader = document.getElementById('loader');
+    const pageSize = 50;
+    let results = [];
+    let currentPage = 0; // 0‑based
+    let totalHits = 0;
+    let currentQuery = "";
 
-        // Helper
-        const showLoader = (show) => {
-            loader.classList.toggle('hidden', !show);
-        };
+    const form = document.getElementById("f");
+    const input = document.getElementById("q");
+    const ul = document.getElementById("out");
+    const statusMsg = document.getElementById("status");
+    const pager = document.getElementById("pager");
+    const prevBtn = document.getElementById("prev");
+    const nextBtn = document.getElementById("next");
+    const pageInfo = document.getElementById("page-info");
 
-        const createResultItem = ({form: word, gloss}) => {
-            const li = document.createElement('li');
-            li.className = 'result';
+    prevBtn.addEventListener("click", () => changePage(currentPage - 1));
+    nextBtn.addEventListener("click", () => changePage(currentPage + 1));
 
-            const wordSpan = document.createElement('span');
-            wordSpan.textContent = word;
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        currentQuery = input.value.trim();
+        if (!currentQuery) return;
+        fetchPage(0);
+    });
 
-            const glossSpan = document.createElement('span');
-            glossSpan.textContent = gloss;
-            glossSpan.className = 'gloss';
+    async function fetchPage(page) {
+        statusMsg.textContent = "Searching…";
+        ul.innerHTML = "";
+        pager.hidden = true;
 
-            li.appendChild(wordSpan);
-            li.appendChild(glossSpan);
-            return li;
-        };
+        try {
+            const url = `/api/search?q=${encodeURIComponent(currentQuery)}&page=${page}&size=${pageSize}`;
+            const r = await fetch(url);
+            if (!r.ok) throw new Error("Server " + r.status);
+            const data = await r.json();
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const query = input.value.trim();
-            if (!query) {
-                info.textContent = 'Please enter a word to search.';
-                list.innerHTML = '';
+            totalHits = data.total;
+            results = data.items;
+            currentPage = data.page;
+
+            if (!totalHits) {
+                statusMsg.textContent = "No results.";
                 return;
             }
+            statusMsg.textContent = `${totalHits} result(s)`;
+            renderPage();
+        } catch (err) {
+            statusMsg.textContent = "Error: " + err.message;
+        }
+    }
 
-            try {
-                showLoader(true);
-                info.textContent = '';
-                list.innerHTML = '';
+    function renderPage() {
+        ul.innerHTML = "";
+        results.forEach((item) => ul.appendChild(createLi(item)));
 
-                const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-                if (!res.ok) {
-                    // noinspection ExceptionCaughtLocallyJS
-                    throw new Error(`Server error: ${res.status}`);
-                }
+        const totalPages = Math.ceil(totalHits / pageSize);
+        pageInfo.textContent = `Page ${currentPage + 1} / ${totalPages}`;
+        prevBtn.disabled = currentPage === 0;
+        nextBtn.disabled = currentPage + 1 >= totalPages;
+        pager.hidden = totalPages <= 1;
+    }
 
-                const data = await res.json();
-                if (data.length === 0) {
-                    info.textContent = 'No results found.';
-                    return;
-                }
+    function changePage(to) {
+        const totalPages = Math.ceil(totalHits / pageSize);
+        if (to < 0 || to >= totalPages) return;
+        fetchPage(to);
+    }
 
-                info.textContent = `Found ${data.length} result${data.length > 1 ? 's' : ''}:`;
-                data.forEach((item) => list.appendChild(createResultItem(item)));
-            } catch (err) {
-                console.error(err);
-                info.textContent = 'Search failed. Please try again later.';
-            } finally {
-                showLoader(false);
-            }
-        });
-    })();
+    function createLi(item) {
+        const li = document.createElement("li");
+        li.innerHTML = `<a href="/entry/${item.id}"><strong>${item.form}</strong> — ${item.glossPreview}</a>`;
+        return li;
+    }
 </script>
 </body>
 </html>

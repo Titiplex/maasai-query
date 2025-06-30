@@ -1,16 +1,16 @@
-// maasai-web/src/main/java/com/aixuniversity/maadictionary/web/dto/ScoredResultDto.java
 package com.aixuniversity.maaweb.dto;
 
-import com.aixuniversity.maadictionary.model.Vocabulary;
 import com.aixuniversity.maadictionary.service.tfidf.ScoredResult;
 
 public record ScoredResultDto(
-        Vocabulary vocab,
+        long id,
+        String form,
+        String glossPreview,  // premier gloss de la liste
         double score
 ) {
     public static ScoredResultDto from(ScoredResult sr) {
-        return new ScoredResultDto(
-                sr.vocab(),
-                sr.score());
+        var v = sr.vocab();
+        String preview = v.getMeanings().isEmpty() ? "" : v.getMeanings().getFirst().getDefinition();
+        return new ScoredResultDto(v.getId(), v.getEntry(), preview, sr.score());
     }
 }

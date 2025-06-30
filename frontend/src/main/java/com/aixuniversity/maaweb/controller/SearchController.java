@@ -1,35 +1,45 @@
-// maasai-web/src/main/java/com/aixuniversity/maadictionary/web/SearchController.java
 package com.aixuniversity.maaweb.controller;
 
+import com.aixuniversity.maadictionary.dao.normal.VocabularyDao;
 import com.aixuniversity.maadictionary.service.SearchService;
+import com.aixuniversity.maaweb.dto.PageDto;
 import com.aixuniversity.maaweb.dto.ScoredResultDto;
+import com.aixuniversity.maaweb.dto.VocabularyDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
-import java.util.List;
 
 @RestController
-@RequestMapping("/api/search")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class SearchController {
 
     private final SearchService searchService;
 
     /**
-     * GET /api/search?q=kasa
+     * 50 résultats max par page
      */
-    @GetMapping
-    public ResponseEntity<List<ScoredResultDto>> search(@RequestParam("q") String q)
-            throws SQLException {
-        var list = searchService.search(q)
-                .stream()
-                .map(ScoredResultDto::from)
-                .toList();
-        return ResponseEntity.ok(list);
+    @GetMapping("/search")
+    public PageDto<ScoredResultDto> search(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size
+    ) throws SQLException {
+        var all = searchService.search(q);
+        int from = Math.min(page * size, all.size());
+        int to = Math.min(from + size, all.size());
+
+        var slice = all.subList(from, to).stream()
+                .map(ScoredResultDto::from).toList();
+        return new PageDto<>(all.size(), page, size, slice);
+    }
+
+    /**
+     * Détail d’une entrée (clic dans la liste)
+     */
+    @GetMapping("/vocab/{id}")
+    public VocabularyDto vocab(@PathVariable int id) throws SQLException {
+        return VocabularyDto.from(new VocabularyDao().searchById(id));
     }
 }
