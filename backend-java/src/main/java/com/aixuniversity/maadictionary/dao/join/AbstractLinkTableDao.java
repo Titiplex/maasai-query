@@ -78,16 +78,16 @@ public abstract class AbstractLinkTableDao<T extends AbstractModel> implements L
      * corresponding to the second IDs.
      * Subclasses must define how to fetch the entity from its ID (e.g. via another DAO).
      */
-    public List<?> getLinkedEntities(Integer firstId) throws SQLException {
+    public List<T> getLinkedEntities(Integer firstId) throws SQLException {
         // 1) Get the list of second IDs
         List<Integer> ids = getLinkedIds(firstId);
 
         // 2) Convert each ID to an actual object
-        List<Object> entities = new ArrayList<>();
+        List<T> entities = new ArrayList<>();
         for (Integer secondId : ids) {
             AbstractModel entity = DaoRegistry.getDao(returnEntityClass()).searchById(secondId);
             if (entity != null) {
-                entities.add(entity);
+                entities.add((T) entity);
             }
         }
         return entities;

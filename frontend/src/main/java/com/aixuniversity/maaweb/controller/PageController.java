@@ -16,7 +16,6 @@ import java.sql.SQLException;
 @RequestMapping("/entry")
 public class PageController {
 
-
     @GetMapping("/{id}")
     public String show(@PathVariable int id, Model model) throws SQLException {
         model.addAttribute("entry", VocabularyDto.from(new VocabularyDao().searchById(id)));

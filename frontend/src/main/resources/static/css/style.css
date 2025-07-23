@@ -114,3 +114,7 @@ h1 {
 .hidden {
     display: none !important;
 }
+
+.li-element {
+    white-space: pre-line;
+}

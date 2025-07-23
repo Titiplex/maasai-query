@@ -13,7 +13,7 @@ import java.util.*;
 
 public abstract class AbstractDao<T extends AbstractModel> implements DaoInterface<T> {
 
-    protected abstract Class<T> getEntityClass();
+    public abstract Class<T> getEntityClass();
 
     protected abstract String getEntityKey();
 

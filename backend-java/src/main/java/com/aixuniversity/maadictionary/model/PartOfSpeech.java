@@ -7,6 +7,12 @@ public class PartOfSpeech extends AbstractModel {
 
     private final static Map<String, PartOfSpeech> partOfSpeechList = new HashMap<>();
 
+    public PartOfSpeech() {
+        super();
+        this.pos = "";
+        addPartOfSpeech(this);
+    }
+
     public PartOfSpeech(String pos) {
         super();
         this.pos = pos;

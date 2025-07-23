@@ -9,7 +9,7 @@
 <div class="page">
     <a href="/">Home Page</a>
     <h2 id="word"></h2>
-    <p id="gloss"></p>
+    <p id="ipa"></p>
 
     <section id="meanings-sec" hidden>
         <h3>Meanings</h3>
@@ -19,6 +19,10 @@
     <section id="examples-sec" hidden>
         <h3>Examples</h3>
         <ul id="examples"></ul>
+    </section>
+    <section id="linked-sec" hidden>
+        <h3>Linked Entries</h3>
+        <ul id="linked"></ul>
     </section>
 </div>
 
@@ -46,13 +50,13 @@
 
     function fill(data) {
         document.getElementById("word").textContent = data.form;
-        document.getElementById("gloss").textContent = data.meanings.join(", ");
+        document.getElementById("ipa").textContent = "/" + data.ipa + "/";
 
         if (data.meanings && data.meanings.length) {
             const ul = document.getElementById("meanings");
             data.meanings.forEach((m) => {
                 const li = document.createElement("li");
-                li.textContent = m;
+                li.textContent = m.definition;
                 ul.appendChild(li);
             });
             document.getElementById("meanings-sec").hidden = false;
@@ -62,10 +66,29 @@
             const ul = document.getElementById("examples");
             data.examples.forEach((ex) => {
                 const li = document.createElement("li");
-                li.textContent = ex;
+                const p = document.createElement("p");
+                p.textContent = ex.example + "\r\n\"" + ex.gloss + "\"";
+                p.className = "li-element";
+                li.append(p);
                 ul.appendChild(li);
             });
             document.getElementById("examples-sec").hidden = false;
+        }
+
+        if (data.linkedVocabs && data.linkedVocabs.length) {
+            const ul = document.getElementById("linked");
+            data.linkedVocabs.forEach((linked) => {
+                const li = document.createElement("li");
+                const p = document.createElement("p");
+                const a = document.createElement("a");
+                p.textContent = linked.entry;
+                p.className = "li-element";
+                a.append(p);
+                a.href = "/entry/" + linked.id;
+                li.append(a);
+                ul.appendChild(li);
+            });
+            document.getElementById("linked-sec").hidden = false;
         }
     }
 </script>

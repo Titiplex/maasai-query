@@ -1,6 +1,7 @@
 package com.aixuniversity.maadictionary.app;
 
 import com.aixuniversity.maadictionary.config.ImportStatus;
+import com.aixuniversity.maadictionary.dao.normal.VocabularyDao;
 import com.aixuniversity.maadictionary.model.Vocabulary;
 import com.aixuniversity.maadictionary.parser.HtmlParser;
 import com.aixuniversity.maadictionary.service.ImportService;
@@ -22,11 +23,12 @@ public class Main {
 //        System.out.println("Result : " + (process(baseUrl) ? "OK" : "KO"));
 
 //        SearchService.main(new String[]{""});
-        Searcher<String> s = new SimpleSequentialSearcher();
-//        for (String q : List.of("u", "VO#", "VO+")) {
-//            System.out.println(q + " → " + s.search(q).size() + " résultats");
-//        }
-        System.out.println(s.search("VO#"));
+//        Searcher<String> s = new SimpleSequentialSearcher();
+////        for (String q : List.of("u", "VO#", "VO+")) {
+////            System.out.println(q + " → " + s.search(q).size() + " résultats");
+////        }
+//        System.out.println(s.search("VO#"));
+        System.out.println(new VocabularyDao().getAll());
     }
 
     public static boolean process(String url) {

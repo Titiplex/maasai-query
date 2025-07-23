@@ -1,8 +1,14 @@
 package com.aixuniversity.maadictionary.model;
 
+import com.aixuniversity.maadictionary.dao.join.PosLinkedDao;
+import com.aixuniversity.maadictionary.dao.join.VocabularyDialectDao;
+import com.aixuniversity.maadictionary.dao.join.VocabularyLinkedDao;
+import com.aixuniversity.maadictionary.dao.normal.ExampleDao;
+import com.aixuniversity.maadictionary.dao.normal.MeaningDao;
 import com.aixuniversity.maadictionary.parser.extractors.IPAExtractor;
 import com.aixuniversity.maadictionary.parser.extractors.SyllableExtractor;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -255,7 +261,7 @@ public class Vocabulary extends AbstractModel {
     }
 
     public void setAllIds() {
-        // TODO erreur si id == null
+        if (this.getId() == null) throw new RuntimeException("Cannot set null id to objects");
 
         for (Example example : examples) {
             example.setVocabularyId(this.getId());
@@ -263,6 +269,22 @@ public class Vocabulary extends AbstractModel {
         for (Meaning meaning : meanings) {
             meaning.setVocabularyId(this.getId());
         }
+    }
+
+    public boolean fill() {
+        Integer id = this.getId();
+        if (id == null) return false;
+        try {
+            if (this.partsOfSpeech.isEmpty()) this.partsOfSpeech = new PosLinkedDao().getLinkedEntities(id);
+            if (this.dialects.isEmpty()) this.dialects = new VocabularyDialectDao().getLinkedEntities(id);
+            if (this.linkedVocabularies.isEmpty())
+                this.linkedVocabularies = new VocabularyLinkedDao().getLinkedEntities(id);
+            if (this.meanings.isEmpty()) this.meanings = new MeaningDao().getAllFromVocId(id);
+            if (this.examples.isEmpty()) this.examples = new ExampleDao().getAllFromVocId(id);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return true;
     }
 
     /**

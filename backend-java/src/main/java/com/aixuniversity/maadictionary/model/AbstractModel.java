@@ -3,7 +3,7 @@ package com.aixuniversity.maadictionary.model;
 public abstract class AbstractModel {
     private int id;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

@@ -4,7 +4,7 @@ import com.aixuniversity.maadictionary.model.Phoneme;
 
 public class PhonemeDao extends AbstractDao<Phoneme> {
     @Override
-    protected Class<Phoneme> getEntityClass() {
+    public Class<Phoneme> getEntityClass() {
         return Phoneme.class;
     }
 

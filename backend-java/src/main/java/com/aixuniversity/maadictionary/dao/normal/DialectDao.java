@@ -4,7 +4,7 @@ import com.aixuniversity.maadictionary.model.Dialect;
 
 public class DialectDao extends AbstractDao<Dialect>{
     @Override
-    protected Class<Dialect> getEntityClass() {
+    public Class<Dialect> getEntityClass() {
         return Dialect.class;
     }
 

@@ -4,7 +4,7 @@ import com.aixuniversity.maadictionary.model.PartOfSpeech;
 
 public class PartOfSpeechDao extends AbstractDao<PartOfSpeech> {
     @Override
-    protected Class<PartOfSpeech> getEntityClass() {
+    public Class<PartOfSpeech> getEntityClass() {
         return PartOfSpeech.class;
     }
 

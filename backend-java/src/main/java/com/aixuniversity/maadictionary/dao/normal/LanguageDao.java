@@ -4,7 +4,7 @@ import com.aixuniversity.maadictionary.model.Language;
 
 public class LanguageDao extends AbstractDao<Language> {
     @Override
-    protected Class<Language> getEntityClass() {
+    public Class<Language> getEntityClass() {
         return Language.class;
     }
 

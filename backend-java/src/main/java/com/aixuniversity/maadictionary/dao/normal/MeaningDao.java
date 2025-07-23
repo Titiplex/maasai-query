@@ -4,7 +4,7 @@ import com.aixuniversity.maadictionary.model.Meaning;
 
 public class MeaningDao extends AbstractDao<Meaning> {
     @Override
-    protected Class<Meaning> getEntityClass() {
+    public Class<Meaning> getEntityClass() {
         return Meaning.class;
     }
 

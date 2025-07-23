@@ -4,7 +4,7 @@ import com.aixuniversity.maadictionary.model.Vocabulary;
 
 public class VocabularyDao extends AbstractDao<Vocabulary> {
     @Override
-    protected Class<Vocabulary> getEntityClass() {
+    public Class<Vocabulary> getEntityClass() {
         return Vocabulary.class;
     }
 

@@ -4,7 +4,7 @@ import com.aixuniversity.maadictionary.model.Category;
 
 public class CategoryDao extends AbstractDao<Category> {
     @Override
-    protected Class<Category> getEntityClass() {
+    public Class<Category> getEntityClass() {
         return Category.class;
     }
 

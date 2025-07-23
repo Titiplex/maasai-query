@@ -9,7 +9,7 @@ public class ExampleDao extends AbstractDao<Example> {
     }
 
     @Override
-    protected Class<Example> getEntityClass() {
+    public Class<Example> getEntityClass() {
         return Example.class;
     }
 }

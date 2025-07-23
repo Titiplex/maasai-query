@@ -14,13 +14,15 @@ public class DaoRegistry {
     private static final Map<Class<?>, AbstractDao<?>> daoMap = new HashMap<>();
 
     static {
-        registerAllDaos("main.java.com.aixuniversity.maadictionary.dao");  // Adjust the package name
+        registerAllDaos("com.aixuniversity.maadictionary.dao.normal");
     }
 
     @SuppressWarnings("unchecked")
     public static <T extends AbstractModel> AbstractDao<T> getDao(Class<T> entityClass) throws SQLException {
+        if (daoMap.isEmpty()) registerAllDaos("com.aixuniversity.maadictionary.dao.normal");
         AbstractDao<T> dao = (AbstractDao<T>) daoMap.get(entityClass);
         if (dao == null) {
+            System.out.println("Map : "+daoMap);
             throw new SQLException("No registered DAO for " + entityClass.getSimpleName());
         }
         return dao;
@@ -28,9 +30,9 @@ public class DaoRegistry {
 
     private static void registerAllDaos(String packageName) {
         Reflections reflections = new Reflections(packageName, Scanners.SubTypes);
-
         // Find all classes extending AbstractDao
         Set<Class<? extends AbstractDao>> daoClasses = reflections.getSubTypesOf(AbstractDao.class);
+
 
         for (Class<? extends AbstractDao> daoClass : daoClasses) {
             try {
@@ -48,11 +50,11 @@ public class DaoRegistry {
         }
     }
 
-    private static Class<?> getEntityClassFromDao(Class<? extends AbstractDao> daoClass) {
+    private static Class<? extends AbstractModel> getEntityClassFromDao(Class<? extends AbstractDao> daoClass) {
         try {
-            // Assuming each DAO has a method getEntityClass()
-            return (Class<?>) daoClass.getDeclaredMethod("getEntityClass").invoke(daoClass.getDeclaredConstructor().newInstance());
+            return (Class<? extends AbstractModel>) daoClass.getDeclaredMethod("getEntityClass").invoke(daoClass.getDeclaredConstructor().newInstance());
         } catch (Exception e) {
+            System.err.println("Could not get entity class from : " + daoClass.getName());
             return null;
         }
     }

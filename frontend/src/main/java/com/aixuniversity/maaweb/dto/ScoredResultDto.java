@@ -5,12 +5,11 @@ import com.aixuniversity.maadictionary.service.tfidf.ScoredResult;
 public record ScoredResultDto(
         long id,
         String form,
-        String glossPreview,  // premier gloss de la liste
+        String ipa,
         double score
 ) {
     public static ScoredResultDto from(ScoredResult sr) {
         var v = sr.vocab();
-        String preview = v.getMeanings().isEmpty() ? "" : v.getMeanings().getFirst().getDefinition();
-        return new ScoredResultDto(v.getId(), v.getEntry(), preview, sr.score());
+        return new ScoredResultDto(v.getId(), v.getEntry(), v.getIpa(), sr.score());
     }
 }
