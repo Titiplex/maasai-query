@@ -144,7 +144,8 @@
         const kindSel = tok.querySelector('.kind');
         const valSel = tok.querySelector('.val');
         const modSel = tok.querySelector('.mod');
-        const delBtn = tok.querySelector('.del-token');
+        const wrapper = tok.querySelector('.token-wrapper');
+        const delBtn  = wrapper.querySelector('.del-token');
 
         function refresh() {
             if (kindSel.value === 'phoneme') {
@@ -157,7 +158,7 @@
         kindSel.onchange = refresh;
         refresh();
         fillSelect(modSel, META.mods);
-        delBtn.onclick = () => tok.remove();
+        delBtn.onclick = () => wrapper.remove();
         container.appendChild(tok);
     }
 
