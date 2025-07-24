@@ -64,9 +64,13 @@ public class Category extends AbstractModel {
         }
     }
 
-    public int getFreq() {
+    public double getWeight() {
         if (this.freq == 0) return 0;
-        return 1 / this.freq;
+        return (double) 1 / this.freq;
+    }
+
+    public int getFreq() {
+        return freq;
     }
 
     public void addFreq() {

@@ -39,7 +39,7 @@ public class Phoneme extends AbstractModel {
         addPhoneme(this);
     }
 
-    public static Phoneme getOrCreateSQL(String tok, PhonemeDao pDao) throws SQLException {
+    public static Phoneme getOrCreate(String tok, PhonemeDao pDao) throws SQLException {
         if (tok == null || tok.isEmpty()) {
             return null;
         }
@@ -101,9 +101,13 @@ public class Phoneme extends AbstractModel {
         return phonemes.get(ipa);
     }
 
-    public int getFreq() {
+    public double getWeight() {
         if (this.freq == 0) return 0;
-        return 1 / this.freq;
+        return (double) 1 / this.freq;
+    }
+
+    public int getFreq() {
+        return freq;
     }
 
     public void addFreq() {

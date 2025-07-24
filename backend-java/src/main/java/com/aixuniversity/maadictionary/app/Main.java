@@ -17,10 +17,10 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-//        String baseUrl = "https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/";
+        String baseUrl = "https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/";
 
-//        System.out.println("Processing...");
-//        System.out.println("Result : " + (process(baseUrl) ? "OK" : "KO"));
+        System.out.println("Processing...");
+        System.out.println("Result : " + (process(baseUrl) ? "OK" : "KO"));
 
 //        SearchService.main(new String[]{""});
 //        Searcher<String> s = new SimpleSequentialSearcher();
@@ -28,7 +28,7 @@ public class Main {
 ////            System.out.println(q + " → " + s.search(q).size() + " résultats");
 ////        }
 //        System.out.println(s.search("VO#"));
-        System.out.println(new VocabularyDao().getAll());
+//        System.out.println(new VocabularyDao().getAll());
     }
 
     public static boolean process(String url) {

@@ -18,8 +18,9 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 
-public final class IndexingService {
+public abstract class IndexingService {
     public static void reindex() throws SQLException {
+        System.out.println("--- (Re)indexing ---");
         VocabularyDao vDao = new VocabularyDao();
         PhonemeDao pDao = new PhonemeDao();
         CategoryDao cDao = new CategoryDao();
@@ -31,7 +32,6 @@ public final class IndexingService {
         int total = idListToIndex.size();
         int done = 0;
 
-        // for (Vocabulary v : vDao.getAll()) {
         for (int vid : idListToIndex) {
             done++;
             ImportStatus.ProgressBar.print(done, total);
@@ -40,7 +40,6 @@ public final class IndexingService {
             if (existing == SyllableExtractor.tokenizeIPAWord(v.getIpa()).size()) {
                 continue;
             }
-            // System.out.println("Indexing " + v.getEntry());
 
             int pos = 0;
             for (Syllable s : v.getSyllables()) {
@@ -57,7 +56,7 @@ public final class IndexingService {
 
                 for (int i = 0; i < toks.size(); i++) {
                     String tok = toks.get(i);
-                    Phoneme ph = Phoneme.getOrCreateSQL(tok, pDao);
+                    Phoneme ph = Phoneme.getOrCreate(tok, pDao);
                     // System.out.println(ph);
 
                     int vpId = (int) vpDao.insertLink(v.getId(), ph.getId(), pos++, i, indexSyll);
@@ -81,7 +80,7 @@ public final class IndexingService {
     private static void updateFrequencies() {
         PhonemeDao pDao = new PhonemeDao();
         CategoryDao cDao = new CategoryDao();
-        // update frequencies ?
+        System.out.println("Updating frequencies...");
         try {
             for (Phoneme ph : Phoneme.getPhonemeList().values()) {
                 pDao.update(ph);
@@ -92,9 +91,11 @@ public final class IndexingService {
         } catch (SQLException e) {
             System.err.println("Error while updating frequencies: " + e.getMessage());
         }
+        System.out.println("Frequencies updated.");
     }
 
     public static void main(String[] args) throws SQLException {
+        System.out.println("--- Indexing ---");
         reindex();
     }
 }
