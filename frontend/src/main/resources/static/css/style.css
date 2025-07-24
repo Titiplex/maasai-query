@@ -50,7 +50,7 @@ h1 {
     font-size: 1rem;
 }
 
-.search-box button {
+.search-box button, .builder-box button {
     padding: 0.75rem 1.25rem;
     background: var(--clr-primary);
     color: #fff;
@@ -60,7 +60,7 @@ h1 {
     transition: background 0.2s ease;
 }
 
-.search-box button:hover {
+.search-box button:hover, .builder-box button:hover {
     background: var(--clr-accent);
 }
 
@@ -117,4 +117,63 @@ h1 {
 
 .li-element {
     white-space: pre-line;
+}
+
+.tabs {
+    display: flex;
+    gap: .5rem;
+    margin-bottom: 1rem
+}
+
+.tabs button {
+    padding: .5rem .9rem;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    background: #eee
+}
+
+.tabs button.active {
+    background: var(--clr-accent);
+    color: #fff
+}
+
+table.builder {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem
+}
+
+table.builder td {
+    padding: .25rem
+}
+
+.row-actions button {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: #c00
+}
+
+.token-wrapper {
+    display: flex;
+    gap: .3rem;
+    align-items: center;
+    margin-bottom: .3rem
+}
+
+.token-wrapper select {
+    padding: .25rem .35rem
+}
+
+.builder-block select, .builder-block input {
+    padding: 0.4rem 0.5rem;
+}
+
+.builder-block button {
+    border: none;
+    background: transparent;
+    font-size: 1.2rem;
+    cursor: pointer;
 }

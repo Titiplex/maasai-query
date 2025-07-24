@@ -1,20 +1,45 @@
+<!-- ============================
+     search.html – v5 (phoneme vs category)
+     ============================ -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Maa Dictionary – Search</title>
+    <title>Maa Dictionary – Search</title>
     <link rel="stylesheet" href="/css/style.css"/>
 </head>
 <body>
 <div class="page">
     <h1>Maa Dictionary</h1>
 
-    <form id="f" class="search-box">
+    <!-- mode switch -->
+    <div class="tabs">
+        <button id="tab-text" class="active">Free text</button>
+        <button id="tab-builder">Pattern builder</button>
+    </div>
+
+    <!-- free text form -->
+    <form id="f-text" class="search-box">
         <label class="hidden" for="q">Search</label>
-        <input id="q" name="q" placeholder="word…" autofocus/>
+        <input id="q" placeholder="word…" autofocus/>
         <button type="submit">Search</button>
     </form>
+
+    <!-- pattern builder UI -->
+    <div id="builder" class="builder-box hidden">
+        <table class="builder">
+            <thead>
+            <tr>
+                <th>Syllable</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+        <button id="add-syll">+ Add syllable</button>
+        <button id="search-pattern">Search</button>
+    </div>
 
     <p id="status" class="msg"></p>
     <ul id="out" class="results"></ul>
@@ -26,79 +51,211 @@
     </div>
 </div>
 
+<!-- template syllable row -->
+<template id="tpl-syllable">
+    <tr class="row">
+        <td>
+            <div class="tokens"></div>
+            <button class="add-token">+ phoneme/category</button>
+        </td>
+        <td class="row-actions">
+            <button class="del-row">🗑</button>
+        </td>
+    </tr>
+</template>
+
+<!-- template token -->
+<template id="tpl-token">
+    <div class="token-wrapper">
+        <label>
+            <select class="kind">
+                <option value="phoneme">phoneme</option>
+                <option value="cat">category</option>
+            </select>
+        </label>
+        <label>
+            <select class="val"></select>
+        </label>
+        <label>
+            <select class="mod">
+                <option value="">exact</option>
+                <option value="?">?</option>
+                <option value="+">+</option>
+                <option value="*">*</option>
+            </select>
+        </label>
+        <button class="del-token">✕</button>
+    </div>
+</template>
+
 <script>
+    let META = {phonemes: [], cats: [], mods: ["", "?", "+", "*"]};
+    fetch('/api/meta').then(r => r.json()).then(d => {
+        META = d;
+        init();
+    }).catch(() => init());
+
+    function fillSelect(sel, list) {
+        sel.innerHTML = '';
+        list.forEach(v => {
+            const o = document.createElement('option');
+            o.value = o.textContent = v;
+            sel.appendChild(o);
+        });
+    }
+
+    // ---------- mode switch ----------
+    let mode = 'text';
+    const tabText = document.getElementById('tab-text');
+    const tabBuilder = document.getElementById('tab-builder');
+    const formText = document.getElementById('f-text');
+    const builderDiv = document.getElementById('builder');
+
+    function switchMode(m) {
+        mode = m;
+        tabText.classList.toggle('active', m === 'text');
+        tabBuilder.classList.toggle('active', m === 'builder');
+        formText.classList.toggle('hidden', m !== 'text');
+        builderDiv.classList.toggle('hidden', m !== 'builder');
+    }
+
+    tabText.onclick = () => switchMode('text');
+    tabBuilder.onclick = () => switchMode('builder');
+
+    // ---------- builder helpers ----------
+    const tbody = document.getElementById('tbody');
+    const tplRow = document.getElementById('tpl-syllable');
+    const tplToken = document.getElementById('tpl-token');
+
+    document.getElementById('add-syll').onclick = addSyllable;
+
+    function addSyllable() {
+        const node = tplRow.content.cloneNode(true);
+        const row = node.querySelector('tr');
+        const tokenDiv = row.querySelector('.tokens');
+        row.querySelector('.add-token').onclick = () => addToken(tokenDiv);
+        row.querySelector('.del-row').onclick = () => row.remove();
+        addToken(tokenDiv);
+        tbody.appendChild(node);
+    }
+
+    function addToken(container) {
+        const tok = tplToken.content.cloneNode(true);
+        const kindSel = tok.querySelector('.kind');
+        const valSel = tok.querySelector('.val');
+        const modSel = tok.querySelector('.mod');
+        const delBtn = tok.querySelector('.del-token');
+
+        function refresh() {
+            if (kindSel.value === 'phoneme') {
+                fillSelect(valSel, META.phonemes);
+            } else {
+                fillSelect(valSel, META.cats);
+            }
+        }
+
+        kindSel.onchange = refresh;
+        refresh();
+        fillSelect(modSel, META.mods);
+        delBtn.onclick = () => tok.remove();
+        container.appendChild(tok);
+    }
+
+    function buildPattern() {
+        const rows = [...tbody.querySelectorAll('.row')];
+        if (!rows.length) return null;
+        const parts = [];
+        for (const r of rows) {
+            const toks = [...r.querySelectorAll('.token-wrapper')];
+            if (!toks.length) continue;
+            for (const t of toks) {
+                const v = t.querySelector('.val').value;
+                const m = t.querySelector('.mod').value;
+                parts.push(v + m);
+            }
+        }
+        return parts.join('');
+    }
+
+    // ---------- search / pagination (inchangé) ----------
     const pageSize = 50;
-    let results = [];
-    let currentPage = 0; // 0‑based
-    let totalHits = 0;
-    let currentQuery = "";
+    let results = [], currentPage = 0, totalHits = 0, currentQuery = "";
+    const input = document.getElementById('q');
+    const ul = document.getElementById('out');
+    const statusMsg = document.getElementById('status');
+    const pager = document.getElementById('pager');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    const pageInfo = document.getElementById('page-info');
+    prevBtn.onclick = () => changePage(currentPage - 1);
+    nextBtn.onclick = () => changePage(currentPage + 1);
 
-    const form = document.getElementById("f");
-    const input = document.getElementById("q");
-    const ul = document.getElementById("out");
-    const statusMsg = document.getElementById("status");
-    const pager = document.getElementById("pager");
-    const prevBtn = document.getElementById("prev");
-    const nextBtn = document.getElementById("next");
-    const pageInfo = document.getElementById("page-info");
-
-    prevBtn.addEventListener("click", () => changePage(currentPage - 1));
-    nextBtn.addEventListener("click", () => changePage(currentPage + 1));
-
-    form.addEventListener("submit", (e) => {
+    formText.onsubmit = e => {
         e.preventDefault();
         currentQuery = input.value.trim();
         if (!currentQuery) return;
         fetchPage(0);
-    });
+    };
+    document.getElementById('search-pattern').onclick = () => {
+        const p = buildPattern();
+        if (!p) {
+            alert('Add at least one syllable');
+            return;
+        }
+        currentQuery = p;
+        fetchPage(0);
+    };
 
     async function fetchPage(page) {
-        statusMsg.textContent = "Searching…";
-        ul.innerHTML = "";
+        statusMsg.textContent = 'Searching…';
+        ul.innerHTML = '';
         pager.hidden = true;
-
         try {
             const url = `/api/search?q=${encodeURIComponent(currentQuery)}&page=${page}&size=${pageSize}`;
             const r = await fetch(url);
-            if (!r.ok) throw new Error("Server " + r.status);
+            if (!r.ok) throw new Error('Server ' + r.status);
             const data = await r.json();
-
             totalHits = data.total;
             results = data.items;
             currentPage = data.page;
-
             if (!totalHits) {
-                statusMsg.textContent = "No results.";
+                statusMsg.textContent = 'No results.';
                 return;
             }
             statusMsg.textContent = `${totalHits} result(s)`;
             renderPage();
         } catch (err) {
-            statusMsg.textContent = "Error: " + err.message;
+            statusMsg.textContent = 'Error: ' + err.message;
         }
     }
 
     function renderPage() {
-        ul.innerHTML = "";
-        results.forEach((item) => ul.appendChild(createLi(item)));
-
-        const totalPages = Math.ceil(totalHits / pageSize);
-        pageInfo.textContent = `Page ${currentPage + 1} / ${totalPages}`;
+        ul.innerHTML = '';
+        results.forEach(i => ul.appendChild(createLi(i)));
+        const tp = Math.ceil(totalHits / pageSize);
+        pageInfo.textContent = `Page ${currentPage + 1} / ${tp}`;
         prevBtn.disabled = currentPage === 0;
-        nextBtn.disabled = currentPage + 1 >= totalPages;
-        pager.hidden = totalPages <= 1;
+        nextBtn.disabled = currentPage + 1 >= tp;
+        pager.hidden = tp <= 1;
     }
 
     function changePage(to) {
-        const totalPages = Math.ceil(totalHits / pageSize);
-        if (to < 0 || to >= totalPages) return;
+        const tp = Math.ceil(totalHits / pageSize);
+        if (to < 0 || to >= tp) return;
         fetchPage(to);
     }
 
-    function createLi(item) {
-        const li = document.createElement("li");
-        li.innerHTML = `<a href="/entry/${item.id}"><strong>${item.form}</strong> — ${item.ipa}</a>`;
+    function createLi(i) {
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="/entry/${i.id}"><strong>${i.form}</strong> — ${i.ipa}</a>`;
         return li;
+    }
+
+    function init() {
+        buildUI();
+    }
+
+    function buildUI() {/* initial row to show builder select options will be filled when first token added */
     }
 </script>
 </body>
