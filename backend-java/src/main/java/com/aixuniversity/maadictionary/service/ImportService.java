@@ -16,13 +16,20 @@ import java.util.Map;
  */
 public abstract class ImportService {
     public static boolean importVocabulary(List<Vocabulary> vocabularyList) {
+        System.out.println("--- Importing vocabulary ---");
+        System.out.println("Total vocabulary count: " + vocabularyList.size());
+        System.out.println("Cleaning vocabulary list...");
         vocabularyList.removeIf(v -> v.getEntry() == null || v.getEntry().isEmpty());
+        System.out.println("Vocabulary list cleaned, count: " + vocabularyList.size());
         try {
             Map<Language, Integer> languageIntegerMap = new LanguageDao().insertAll(Language.getLanguages().values());
+            System.out.println("Imported languages");
             Map<PartOfSpeech, Integer> posIntegerMap = new PartOfSpeechDao().insertAll(PartOfSpeech.getPartOfSpeechList().values());
+            System.out.println("Imported POS");
             Map<Dialect, Integer> dialectIntegerMap = new DialectDao().insertAll(Dialect.getDialects().values());
-            System.out.println("Importing " + dialectIntegerMap);
+            System.out.println("Imported dialects");
             Map<Vocabulary, Integer> vocabularyIntegerMap = new VocabularyDao().insertAll(vocabularyList);
+            System.out.println("Imported entries");
 
             MeaningDao meaningDao = new MeaningDao();
             ExampleDao exampleDao = new ExampleDao();
@@ -37,6 +44,7 @@ public abstract class ImportService {
             int total = vocabularyList.size();
             int done = 0;
 
+            System.out.println("Inserting vocabulary data...");
             for (Vocabulary vocabulary : vocabularyList) {
                 vocabulary.setId(vocabularyIntegerMap.get(vocabulary));
                 vocabulary.setAllIds();
@@ -101,9 +109,9 @@ public abstract class ImportService {
         String baseUrl = args[0];
 
         if (ImportService.importVocabulary(HtmlParser.parseAll(baseUrl))) {
-            System.out.println("Imported successfully");
+            System.out.println("Imported successfully !");
         } else {
-            System.out.println("Imported unsuccessfully");
+            System.out.println("Imported unsuccessfully !");
         }
         ImportStatus.recordImport(baseUrl);
     }
