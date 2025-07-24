@@ -35,7 +35,7 @@ public abstract class ImportService {
             VocabularyDialectDao vocabularyDialectDao = new VocabularyDialectDao();
 
             int total = vocabularyList.size();
-            int done  = 0;
+            int done = 0;
 
             for (Vocabulary vocabulary : vocabularyList) {
                 vocabulary.setId(vocabularyIntegerMap.get(vocabulary));
@@ -74,8 +74,8 @@ public abstract class ImportService {
                     // If the linked vocabulary has not been inserted yet, skip it and warn the user
                     if (linkedId == null) {
                         System.err.printf(
-                            "Warning: linked vocabulary '%s' referenced from '%s' is missing from the import list and will be ignored.%n",
-                            vocLinked.getEntry(), vocabulary.getEntry()
+                                "Warning: linked vocabulary '%s' referenced from '%s' is missing from the import list and will be ignored.%n",
+                                vocLinked.getEntry(), vocabulary.getEntry()
                         );
                         continue;          // Prevents NullPointerException
                     }
@@ -100,7 +100,11 @@ public abstract class ImportService {
     public static void main(String[] args) throws SQLException {
         String baseUrl = args[0];
 
-        ImportService.importVocabulary(HtmlParser.parseAll(baseUrl));
+        if (ImportService.importVocabulary(HtmlParser.parseAll(baseUrl))) {
+            System.out.println("Imported successfully");
+        } else {
+            System.out.println("Imported unsuccessfully");
+        }
         ImportStatus.recordImport(baseUrl);
     }
 }
