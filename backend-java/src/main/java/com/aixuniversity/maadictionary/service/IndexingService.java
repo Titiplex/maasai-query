@@ -2,7 +2,7 @@ package com.aixuniversity.maadictionary.service;
 
 import com.aixuniversity.maadictionary.config.AbbreviationConfig;
 import com.aixuniversity.maadictionary.config.IPAConfig;
-import com.aixuniversity.maadictionary.config.ImportStatus;
+import com.aixuniversity.maadictionary.app.ImportStatus;
 import com.aixuniversity.maadictionary.dao.join.PhonemeCategoryDao;
 import com.aixuniversity.maadictionary.dao.join.VocabularyPhonemeCategoryDao;
 import com.aixuniversity.maadictionary.dao.join.VocabularyPhonemeDao;

@@ -1,6 +1,6 @@
 package com.aixuniversity.maadictionary.service;
 
-import com.aixuniversity.maadictionary.config.ImportStatus;
+import com.aixuniversity.maadictionary.app.ImportStatus;
 import com.aixuniversity.maadictionary.config.PosConfig;
 import com.aixuniversity.maadictionary.dao.join.*;
 import com.aixuniversity.maadictionary.dao.normal.*;

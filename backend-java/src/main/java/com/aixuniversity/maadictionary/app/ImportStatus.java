@@ -1,4 +1,4 @@
-package com.aixuniversity.maadictionary.config;
+package com.aixuniversity.maadictionary.app;
 
 import com.aixuniversity.maadictionary.dao.utils.DatabaseHelper;
 
