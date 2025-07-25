@@ -1,14 +1,14 @@
 package com.aixuniversity.maadictionary.service;
 
-import com.aixuniversity.maadictionary.config.AbbreviationConfig;
-import com.aixuniversity.maadictionary.config.IPAConfig;
 import com.aixuniversity.maadictionary.config.ImportStatus;
+import com.aixuniversity.maadictionary.config.PosConfig;
 import com.aixuniversity.maadictionary.dao.join.*;
 import com.aixuniversity.maadictionary.dao.normal.*;
 import com.aixuniversity.maadictionary.model.*;
 import com.aixuniversity.maadictionary.parser.HtmlParser;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -27,8 +27,24 @@ public abstract class ImportService {
             Map<Language, Integer> languageIntegerMap = new LanguageDao().insertAll(Language.getLanguages().values());
             System.out.println("Imported languages");
 
-            Map<PartOfSpeech, Integer> posIntegerMap = new PartOfSpeechDao().insertAll(PartOfSpeech.getPartOfSpeechList().values());
-            System.out.println("Imported POS");
+            System.out.println("Inserting POS data...");
+            System.out.println("Inserting POS properties...");
+            PartOfSpeechDao posDao = new PartOfSpeechDao();
+            for (Map.Entry<String, String> pos : PosConfig.getPosMap().entrySet()) {
+                // TODO les abbréviations de pos -> noms complets
+                posDao.insert(new PartOfSpeech(pos.getValue()));
+            }
+            System.out.println("Inserted POS properties.");
+            System.out.println("Inserting residual Pos from HTML...");
+            Collection<PartOfSpeech> posList = PartOfSpeech.getPartOfSpeechList().values();
+            posList.removeIf(
+                    p ->
+                            PartOfSpeech.getPartOfSpeech(p.getPos()) == null
+                                    || p.getPos().isEmpty()
+                                    || p.getPos() == null
+            );
+            Map<PartOfSpeech, Integer> posIntegerMap = posDao.insertAll(posList);
+            System.out.println("Imported POS.");
 
             Map<Dialect, Integer> dialectIntegerMap = new DialectDao().insertAll(Dialect.getDialects().values());
             System.out.println("Imported dialects");
