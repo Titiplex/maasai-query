@@ -66,6 +66,7 @@ public class Phoneme extends AbstractModel {
             Phoneme phon = new Phoneme(letter, tok);
             phon.setId(pDao.insert(phon));
             addPhoneme(phon);
+            System.out.println("Phoneme " + tok + " created with id " + phon.getId());
             return phon;
         }
     }

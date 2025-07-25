@@ -60,6 +60,7 @@ public class Category extends AbstractModel {
             Category cat = new Category(name, abbr);
             cat.setId(cDao.insert(cat));
             addCategory(cat);
+            System.out.println("Category " + abbr + " created with id " + cat.getId());
             return cat;
         }
     }

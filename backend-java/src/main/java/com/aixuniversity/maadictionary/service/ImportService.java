@@ -1,5 +1,7 @@
 package com.aixuniversity.maadictionary.service;
 
+import com.aixuniversity.maadictionary.config.AbbreviationConfig;
+import com.aixuniversity.maadictionary.config.IPAConfig;
 import com.aixuniversity.maadictionary.config.ImportStatus;
 import com.aixuniversity.maadictionary.dao.join.*;
 import com.aixuniversity.maadictionary.dao.normal.*;
@@ -24,10 +26,13 @@ public abstract class ImportService {
         try {
             Map<Language, Integer> languageIntegerMap = new LanguageDao().insertAll(Language.getLanguages().values());
             System.out.println("Imported languages");
+
             Map<PartOfSpeech, Integer> posIntegerMap = new PartOfSpeechDao().insertAll(PartOfSpeech.getPartOfSpeechList().values());
             System.out.println("Imported POS");
+
             Map<Dialect, Integer> dialectIntegerMap = new DialectDao().insertAll(Dialect.getDialects().values());
             System.out.println("Imported dialects");
+
             Map<Vocabulary, Integer> vocabularyIntegerMap = new VocabularyDao().insertAll(vocabularyList);
             System.out.println("Imported entries");
 

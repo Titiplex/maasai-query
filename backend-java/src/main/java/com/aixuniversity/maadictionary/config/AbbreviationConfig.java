@@ -15,6 +15,10 @@ public abstract class AbbreviationConfig {
         buildAbbreviationMap();
     }
 
+    public static Map<String, String> getAbbrMap() {
+        return ABBR_MAP;
+    }
+
     /**
      * Recharge le fichier IPA.properties (utile pour un rechargement à chaud).
      */

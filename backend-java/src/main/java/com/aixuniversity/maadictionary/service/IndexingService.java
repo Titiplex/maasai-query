@@ -1,5 +1,7 @@
 package com.aixuniversity.maadictionary.service;
 
+import com.aixuniversity.maadictionary.config.AbbreviationConfig;
+import com.aixuniversity.maadictionary.config.IPAConfig;
 import com.aixuniversity.maadictionary.config.ImportStatus;
 import com.aixuniversity.maadictionary.dao.join.PhonemeCategoryDao;
 import com.aixuniversity.maadictionary.dao.join.VocabularyPhonemeCategoryDao;
@@ -17,6 +19,7 @@ import com.aixuniversity.maadictionary.service.search.SyllablePattern;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public abstract class IndexingService {
     public static void reindex() throws SQLException {
@@ -27,6 +30,17 @@ public abstract class IndexingService {
         VocabularyPhonemeDao vpDao = new VocabularyPhonemeDao();
         VocabularyPhonemeCategoryDao vpcDao = new VocabularyPhonemeCategoryDao();
         PhonemeCategoryDao pcDao = new PhonemeCategoryDao();
+
+        System.out.println("Inserting IPA properties...");
+        for (Map.Entry<String, String> ipa : IPAConfig.getIpaMap().entrySet()) {
+            pDao.insert(new Phoneme(ipa.getValue(), ipa.getKey()));
+        }
+        System.out.println("IPA properties inserted.");
+        System.out.println("Inserting category properties...");
+        for (Map.Entry<String, String> cat : AbbreviationConfig.getAbbrMap().entrySet()) {
+            cDao.insert(new Category(cat.getValue(), cat.getKey()));
+        }
+        System.out.println("Category properties inserted.");
 
         List<Integer> idListToIndex = ImportStatus.unindexedVocabularyIds();
         int total = idListToIndex.size();

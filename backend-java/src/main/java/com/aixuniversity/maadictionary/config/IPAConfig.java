@@ -19,6 +19,10 @@ public abstract class IPAConfig {
         buildIPAMap();
     }
 
+    public static Map<String, String> getIpaMap() {
+        return IPA_MAP;
+    }
+
     /**
      * Recharge le fichier IPA.properties (utile pour un rechargement à chaud).
      */
@@ -38,7 +42,6 @@ public abstract class IPAConfig {
         // supprime tous les espaces (y compris tabulations, retours chariot…)
         return raw.replaceAll("\\s+", "");
     }
-
 
     /**
      * Catégories (virgule‑séparées) pour le symbole (key).
