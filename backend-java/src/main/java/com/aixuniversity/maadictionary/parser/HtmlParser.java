@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
  * à partir d'une URL de base (ex :<a href="https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/"></a>).
  */
 public abstract class HtmlParser {
+    private static List<String> specs = new ArrayList<>();
 
     /**
      * Explore toutes les pages liées (en .htm / .html) à partir de l'URL de base,
@@ -79,6 +80,11 @@ public abstract class HtmlParser {
                 // Logger l'erreur, puis continuer l'exploration
                 System.err.println("Impossible de charger " + currentUrl + " : " + e.getMessage());
             }
+        }
+
+        System.err.println("The following were found to be dialect-similar, please verify :");
+        for (String str : specs) {
+            System.err.println(str);
         }
 
         return allVocabulary;
@@ -240,6 +246,7 @@ public abstract class HtmlParser {
                     dialects.add(getOrCreateDialect(name));
                 } else if (!name.isEmpty()) {
                     spec.append(name).append(";\n");
+                    specs.add(name);
                 }
             }
         } else {

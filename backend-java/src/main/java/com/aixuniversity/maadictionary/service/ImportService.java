@@ -7,9 +7,7 @@ import com.aixuniversity.maadictionary.config.PosConfig;
 import com.aixuniversity.maadictionary.dao.join.*;
 import com.aixuniversity.maadictionary.dao.normal.*;
 import com.aixuniversity.maadictionary.model.*;
-import com.aixuniversity.maadictionary.parser.HtmlParser;
 
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -137,22 +135,10 @@ public abstract class ImportService {
 
                 // System.out.println("Enregistrement pour : " + vocabulary.getEntry());
             }
-
             return true;
         } catch (Exception e) {
             System.err.println("Erreur lors de l'importation : " + e.getMessage());
             throw new RuntimeException(e);
         }
-    }
-
-    public static void main(String[] args) throws SQLException {
-        String baseUrl = args[0];
-
-        if (ImportService.importVocabulary(HtmlParser.parseAll(baseUrl))) {
-            System.out.println("Imported successfully !");
-        } else {
-            System.out.println("Imported unsuccessfully !");
-        }
-        ImportStatus.recordImport(baseUrl);
     }
 }

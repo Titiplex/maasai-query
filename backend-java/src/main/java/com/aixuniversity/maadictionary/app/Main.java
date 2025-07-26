@@ -1,11 +1,11 @@
 package com.aixuniversity.maadictionary.app;
 
-import com.aixuniversity.maadictionary.config.ImportStatus;
 import com.aixuniversity.maadictionary.dao.normal.VocabularyDao;
 import com.aixuniversity.maadictionary.model.Vocabulary;
 import com.aixuniversity.maadictionary.parser.HtmlParser;
 import com.aixuniversity.maadictionary.service.ImportService;
 import com.aixuniversity.maadictionary.service.IndexingService;
+import com.aixuniversity.maadictionary.service.SearchService;
 import com.aixuniversity.maadictionary.service.search.Searcher;
 import com.aixuniversity.maadictionary.service.search.SimpleSequentialSearcher;
 
@@ -22,23 +22,44 @@ public class Main {
         System.out.println("Processing...");
         System.out.println("Result : " + (process(baseUrl) ? "OK" : "KO"));
 
-//        SearchService.main(new String[]{""});
-//        Searcher<String> s = new SimpleSequentialSearcher();
-////        for (String q : List.of("u", "VO#", "VO+")) {
-////            System.out.println(q + " → " + s.search(q).size() + " résultats");
-////        }
-//        System.out.println(s.search("VO#"));
-//        System.out.println(new VocabularyDao().getAll());
+        SearchService.main(new String[]{""});
+        Searcher<String> s = new SimpleSequentialSearcher();
+        for (String q : List.of("u", "VO#", "VO+")) {
+            System.out.println(q + " → " + s.search(q).size() + " résultats");
+        }
+        System.out.println(s.search("VO#"));
+        System.out.println(new VocabularyDao().getAll());
     }
 
     public static boolean process(String url) {
         try {
-            if (ImportStatus.needsImport(url)) {
+            System.out.println("Starting parsing...");
+            List<Vocabulary> vocab = HtmlParser.parseAll(url);
+            System.out.println("Parsing Finished. Do you want to import the vocabulary ? (y/n) ");
+            String answer = System.console().readLine();
+            if (answer.equalsIgnoreCase("y") && ImportStatus.needsImport(url)) {
                 System.out.println("\n\tImporting " + url);
-                ImportService.main(new String[]{url});
+                if (ImportService.importVocabulary(vocab)) {
+                    System.out.println("Imported successfully !");
+                    ImportStatus.recordImport(url);
+                } else {
+                    System.out.println("Import failed !");
+                }
+            } else if (answer.equalsIgnoreCase("n") && ImportStatus.needsImport(url)) {
+                System.out.println("Skipping import of " + url);
+            } else {
+                System.err.println("Invalid answer or couldn't determine if import is needed. Please answer y/n and try again.");
+                return false;
             }
-            System.out.println("\n\tReindexing");
-            IndexingService.main(new String[]{});
+            System.out.println("Do you want to reindex the vocabulary ? (y/n) ");
+            if (System.console().readLine().equalsIgnoreCase("y")) {
+                IndexingService.reindex();
+            } else if (answer.equalsIgnoreCase("n")) {
+                System.out.println("Skipping import of " + url);
+            } else {
+                System.err.println("Invalid answer or couldn't determine if reindex is needed. Please answer y/n and try again.");
+                return false;
+            }
         } catch (SQLException e) {
             System.err.println("Error while importing " + url);
             return false;
