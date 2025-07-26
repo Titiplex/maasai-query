@@ -1,6 +1,7 @@
 package com.aixuniversity.maadictionary.service;
 
 import com.aixuniversity.maadictionary.app.ImportStatus;
+import com.aixuniversity.maadictionary.config.DialectConfig;
 import com.aixuniversity.maadictionary.config.LanguageConfig;
 import com.aixuniversity.maadictionary.config.PosConfig;
 import com.aixuniversity.maadictionary.dao.join.*;
@@ -30,7 +31,7 @@ public abstract class ImportService {
             System.out.println("Inserting language properties...");
             LanguageDao languageDao = new LanguageDao();
             Map<Language, Integer> languageIntegerMap = new HashMap<>();
-            for(Map.Entry<String, String> lang : LanguageConfig.getLangMap().entrySet()) {
+            for (Map.Entry<String, String> lang : LanguageConfig.getLangMap().entrySet()) {
                 Language language = new Language(lang.getKey(), lang.getValue());
                 languageIntegerMap.put(language, languageDao.insert(language));
             }
@@ -57,7 +58,14 @@ public abstract class ImportService {
             posIntegerMap.putAll(posDao.insertAll(posList));
             System.out.println("Imported POS.");
 
-            Map<Dialect, Integer> dialectIntegerMap = new DialectDao().insertAll(Dialect.getDialects().values());
+            System.out.println("Inserting dialect data...");
+            System.out.println("Inserting dialect properties...");
+            DialectDao dialectDao = new DialectDao();
+            Map<Dialect, Integer> dialectIntegerMap = new HashMap<>();
+            for (Map.Entry<String, String> dialect : DialectConfig.getDialectMap().entrySet()) {
+                Dialect dial = new Dialect(dialect.getKey());
+                dialectIntegerMap.put(dial, dialectDao.insert(dial));
+            }
             System.out.println("Imported dialects");
 
             Map<Vocabulary, Integer> vocabularyIntegerMap = new VocabularyDao().insertAll(vocabularyList);

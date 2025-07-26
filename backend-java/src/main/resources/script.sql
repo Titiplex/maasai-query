@@ -44,12 +44,13 @@ CREATE TABLE `Dialect`
 -- Table Vocabulary
 CREATE TABLE `Vocabulary`
 (
-    `id`           INT          NOT NULL AUTO_INCREMENT,
-    `entry`        VARCHAR(255) NOT NULL,
-    `ipa`          VARCHAR(255) NOT NULL,
-    `syll_count`   INT                   DEFAULT 0,
-    `syll_pattern` Text,
-    `homonymIndex` INT          NOT NULL DEFAULT 1,
+    `id`             INT          NOT NULL AUTO_INCREMENT,
+    `entry`          VARCHAR(255) NOT NULL,
+    `ipa`            VARCHAR(255) NOT NULL,
+    `syll_count`     INT                   DEFAULT 0,
+    `syll_pattern`   Text,
+    `homonymIndex`   INT          NOT NULL DEFAULT 1,
+    `specifications` VARCHAR(255),
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;

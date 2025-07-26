@@ -21,12 +21,10 @@ public class Vocabulary extends AbstractModel {
     private static final Pattern DIALECT_PATTERN = Pattern.compile("\\[(.+?)]");
     private String ipa;
     private List<Syllable> syllables;
-
     private String syll_pattern;
-
     private int syll_count = 0;
-
     private String entry;
+    private String specifications;
     // TODO passer les listes en Set ?
     private List<PartOfSpeech> partsOfSpeech;
     private List<Meaning> meanings;
@@ -325,6 +323,14 @@ public class Vocabulary extends AbstractModel {
 
     public void setSyllables(List<Syllable> syllables) {
         this.syllables = syllables;
+    }
+
+    public String getSpecifications() {
+        return specifications;
+    }
+
+    public void setSpecifications(String specifications) {
+        this.specifications = specifications;
     }
 }
 

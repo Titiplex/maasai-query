@@ -1,5 +1,7 @@
 package com.aixuniversity.maadictionary.parser;
 
+import com.aixuniversity.maadictionary.config.DialectConfig;
+import com.aixuniversity.maadictionary.config.PosConfig;
 import com.aixuniversity.maadictionary.model.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -92,8 +94,6 @@ public abstract class HtmlParser {
     private static List<Vocabulary> parseVocab(Document doc) {
         List<Vocabulary> pageVocabulary = new ArrayList<>();
 
-        // Exemple : on sélectionne tous les paragraphes
-        // À vous d’adapter selon la structure HTML réelle
         Elements entries = doc.select(".lpLexEntryPara, .lpLexEntryPara2"); // :has(.lpLexEntryPara)
         // Liste pour stocker les groupes (un mot par groupe)
         List<List<Element>> groupedEntries = new ArrayList<>();
@@ -133,8 +133,8 @@ public abstract class HtmlParser {
                 }
             }
 
-            if (partOfSpeech != null) {
-                for (String pos : partOfSpeech.text().split(" ")) {
+            if (partOfSpeech != null && !partOfSpeech.text().isEmpty() && PosConfig.getPosMap().containsKey(partOfSpeech.text())) {
+                for (String pos : partOfSpeech.text().split("\\W+")) {
                     vocabulary.addPartOfSpeech(new PartOfSpeech(pos));
                 }
             }
@@ -158,6 +158,10 @@ public abstract class HtmlParser {
                             }
                         } else {
                             vocabulary.addDialect(extractDialects(child));
+                            String spec = extractSpecs(child);
+                            if (spec != null) {
+                                vocabulary.setSpecifications(vocabulary.getSpecifications() + spec);
+                            }
                         }
                     } else if (child.hasClass("lpExample")) {
                         if (i + 1 < children.size()) {
@@ -196,6 +200,10 @@ public abstract class HtmlParser {
         return extractDialectsAndRemainder(dialectElement).dialects();
     }
 
+    private static String extractSpecs(Element dialectElement) {
+        return extractDialectsAndRemainder(dialectElement).spec();
+    }
+
     /**
      * Same as {@link #extractDialects(Element)} but also returns the trailing
      * part found after the closing bracket, if any.
@@ -203,7 +211,7 @@ public abstract class HtmlParser {
     private static DialectParseResult extractDialectsAndRemainder(Element dialectElement) {
         // Safety – empty result object
         if (dialectElement == null) {
-            return new DialectParseResult(Collections.emptyList(), "");
+            return new DialectParseResult(Collections.emptyList(), "", "");
         }
 
         // 1) Raw text cleanup
@@ -218,6 +226,7 @@ public abstract class HtmlParser {
 
         List<Dialect> dialects = new ArrayList<>();
         String remainder = "";
+        StringBuilder spec = new StringBuilder();
 
         if (m.find()) {
             // group(1) ⇒ "Kisongo, Parakuyo"
@@ -227,20 +236,22 @@ public abstract class HtmlParser {
             // Split on commas, ignore blanks
             for (String part : inside.split(",")) {
                 String name = part.trim();
-                if (!name.isEmpty()) {
+                if (!name.isEmpty() && DialectConfig.getDialectMap().containsKey(name)) {
                     dialects.add(getOrCreateDialect(name));
+                } else if (!name.isEmpty()) {
+                    spec.append(name).append(";\n");
                 }
             }
         } else {
             // 3) Fallback – text contains dialect names but no brackets
-            for (String known : Dialect.getDialects().keySet()) {
+            for (String known : DialectConfig.getDialectMap().keySet()) {
                 if (raw.toLowerCase().contains(known.toLowerCase())) {
                     dialects.add(getOrCreateDialect(known));
                 }
             }
         }
 
-        return new DialectParseResult(dialects, remainder);
+        return new DialectParseResult(dialects, remainder, spec.toString());
     }
 
     /**
@@ -258,7 +269,7 @@ public abstract class HtmlParser {
     /**
      * Immutable record that groups the parsing result.
      */
-    private record DialectParseResult(List<Dialect> dialects, String remainder) {
+    private record DialectParseResult(List<Dialect> dialects, String remainder, String spec) {
     }
 
     private static Vocabulary extractLinkedVocabulary(Element heading, Element paradigm) {
