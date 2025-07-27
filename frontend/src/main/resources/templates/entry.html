@@ -41,7 +41,7 @@
         throw new Error("No id");
     }
 
-    fetch(`/api/vocab/${id}`)
+    fetch(`/entry/${id}`)
         .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
         .then(fill)
         .catch((err) => {

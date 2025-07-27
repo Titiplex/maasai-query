@@ -1,6 +1,5 @@
 package com.aixuniversity.maaweb.controller;
 
-import com.aixuniversity.maadictionary.model.Phoneme;
 import com.aixuniversity.maaweb.service.PhonemeCatalog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

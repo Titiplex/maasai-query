@@ -2,11 +2,11 @@ package com.aixuniversity.maadictionary.service.textitometric;
 
 import com.aixuniversity.maadictionary.model.Vocabulary;
 
-public final class Metrics {
+public interface Metrics {
     /**
      * entropie de Shannon de la distribution des catégories dans un mot
      */
-    public static double entropy(Vocabulary v) {
+    static double entropy(Vocabulary v) {
         var counts = new java.util.HashMap<String, Integer>();
         for (String s : v.getSyll_pattern().split("[| -]"))
             for (String c : s.split("/"))
@@ -20,7 +20,7 @@ public final class Metrics {
     /**
      * ratio voyelle/consonne
      */
-    public static double vowelRatio(Vocabulary v) {
+    static double vowelRatio(Vocabulary v) {
         int vCnt = 0, total = 0;
         for (String s : v.getSyll_pattern().split("[| -]")) {
             total++;
