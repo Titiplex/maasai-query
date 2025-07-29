@@ -20,15 +20,17 @@ public class Main {
         String baseUrl = "https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/";
 
         System.out.println("Processing...");
-        System.out.println("Result : " + (process(baseUrl) ? "OK" : "KO"));
-
-        SearchService.main(new String[]{""});
-        Searcher<String> s = new SimpleSequentialSearcher();
-        for (String q : List.of("u", "VO#", "VO+")) {
-            System.out.println(q + " → " + s.search(q).size() + " résultats");
+        if (process(baseUrl)) {
+            System.out.println("Processing finished.");
         }
-        System.out.println(s.search("VO#"));
-        System.out.println(new VocabularyDao().getAll());
+
+//        SearchService.main(new String[]{""});
+//        Searcher<String> s = new SimpleSequentialSearcher();
+//        for (String q : List.of("u", "VO#", "VO+")) {
+//            System.out.println(q + " → " + s.search(q).size() + " résultats");
+//        }
+//        System.out.println(s.search("VO#"));
+//        System.out.println(new VocabularyDao().getAll());
     }
 
     public static boolean process(String url) {
@@ -52,10 +54,11 @@ public class Main {
                 return false;
             }
             System.out.println("Do you want to reindex the vocabulary ? (y/n) ");
-            if (System.console().readLine().equalsIgnoreCase("y")) {
+            answer = System.console().readLine();
+            if (answer.equalsIgnoreCase("y")) {
                 IndexingService.reindex();
             } else if (answer.equalsIgnoreCase("n")) {
-                System.out.println("Skipping import of " + url);
+                System.out.println("Skipping reindexing of " + url);
             } else {
                 System.err.println("Invalid answer or couldn't determine if reindex is needed. Please answer y/n and try again.");
                 return false;

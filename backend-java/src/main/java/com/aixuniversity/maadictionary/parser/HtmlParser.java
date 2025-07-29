@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * à partir d'une URL de base (ex :<a href="https://pages.uoregon.edu/maasai/Maa%20Lexicon/lexicon/"></a>).
  */
 public abstract class HtmlParser {
-    private static List<String> specs = new ArrayList<>();
+    private static final Set<String> specs = new HashSet<>();
 
     /**
      * Explore toutes les pages liées (en .htm / .html) à partir de l'URL de base,
@@ -285,7 +285,8 @@ public abstract class HtmlParser {
         DialectParseResult dialectsAndRemainder = extractDialectsAndRemainder(heading);
         linkedVocabulary.addDialect(dialectsAndRemainder.dialects());
         for (String str : dialectsAndRemainder.remainder().split("\\W+")) {
-            if (!str.isEmpty() && PartOfSpeech.getPartOfSpeechList().containsKey(str)) linkedVocabulary.addPartOfSpeech(new PartOfSpeech(str));
+            if (!str.isEmpty() && PartOfSpeech.getPartOfSpeechList().containsKey(str))
+                linkedVocabulary.addPartOfSpeech(new PartOfSpeech(str));
         }
 
         return linkedVocabulary;
