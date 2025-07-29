@@ -1,6 +1,6 @@
-DROP DATABASE `maa`;
-CREATE DATABASE `maa`;
-USE `maa`;
+# DROP DATABASE `maa`;
+# CREATE DATABASE `maa`;
+# USE `maa`;
 
 -- Metadata
 

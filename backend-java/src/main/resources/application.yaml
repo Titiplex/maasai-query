@@ -1,12 +1,21 @@
-server:
-  port: 8080
-
 spring:
+  config:
+    import: optional:file:.env[.properties]
+
+#  # on empêche Spring de créer son DataSource
+#  autoconfigure:
+#    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
   datasource:
-    url: jdbc:mariadb://localhost:5432/maasai
-    username: dbuser
-    password: dbpass
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: true
+    username: ${USER:root}
+    password: ${PASSWORD:}
+
+# paramètres MariaDB4j
+mariaDB4j.port: 0                     # 0 = port libre
+mariaDB4j.dataDir: ${user.dir}/db/data
+mariaDB4j.databaseName: ${DATABASE:maa}
+
+flyway:
+  enabled: true
+  baseline-on-migrate: true
+  locations: classpath:db/migration

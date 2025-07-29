@@ -8,8 +8,6 @@ import com.aixuniversity.maadictionary.service.tfidf.ScoredResult;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public final class SearchService {
     private final Searcher<String> exact = new SimpleSequentialSearcher();
@@ -28,32 +26,32 @@ public final class SearchService {
         return approx.searchAndRank(raw, 25);
     }
 
-    public static void main(String[] args) throws SQLException {
-        try (Scanner scanner = new Scanner(System.in)) {
-            SearchService searchService = new SearchService();   // reuse the service instance
-            while (true) {
-                System.out.print("Search (blank to quit): ");
-                String query = scanner.nextLine().trim();
-                if (query.isBlank()) {
-                    System.out.println("Bye!");
-                    break;
-                }
-                try {
-                    List<ScoredResult> results = searchService.search(query);
-                    if (results.isEmpty()) {
-                        System.out.println("No results. Please check if all the characters in the query are known.");
-                    } else {
-                        System.out.println("Found " + results.size() + " result(s) :");
-                        AtomicInteger i = new AtomicInteger(1);
-                        results.forEach(r -> {
-                            System.out.println(i + ". " + r);
-                            i.getAndIncrement();
-                        });
-                    }
-                } catch (SQLException e) {
-                    System.err.println("Search failed: " + e.getMessage());
-                }
-            }
-        }
-    }
+//    public static void main(String[] args) throws SQLException {
+//        try (Scanner scanner = new Scanner(System.in)) {
+//            SearchService searchService = new SearchService();   // reuse the service instance
+//            while (true) {
+//                System.out.print("Search (blank to quit): ");
+//                String query = scanner.nextLine().trim();
+//                if (query.isBlank()) {
+//                    System.out.println("Bye!");
+//                    break;
+//                }
+//                try {
+//                    List<ScoredResult> results = searchService.search(query);
+//                    if (results.isEmpty()) {
+//                        System.out.println("No results. Please check if all the characters in the query are known.");
+//                    } else {
+//                        System.out.println("Found " + results.size() + " result(s) :");
+//                        AtomicInteger i = new AtomicInteger(1);
+//                        results.forEach(r -> {
+//                            System.out.println(i + ". " + r);
+//                            i.getAndIncrement();
+//                        });
+//                    }
+//                } catch (SQLException e) {
+//                    System.err.println("Search failed: " + e.getMessage());
+//                }
+//            }
+//        }
+//    }
 }

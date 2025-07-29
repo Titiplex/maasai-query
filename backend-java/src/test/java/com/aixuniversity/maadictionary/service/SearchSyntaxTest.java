@@ -1,8 +1,10 @@
 package com.aixuniversity.maadictionary.service;
 
+import com.aixuniversity.maadictionary.dao.utils.DatabaseHelper;
 import com.aixuniversity.maadictionary.model.Vocabulary;
 import com.aixuniversity.maadictionary.service.search.Searcher;
 import com.aixuniversity.maadictionary.service.search.SimpleSequentialSearcher;
+import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,6 +22,17 @@ class SearchSyntaxTest {
     @BeforeAll
     static void initSearcher() throws SQLException {
         searcher = new SimpleSequentialSearcher();
+    }
+
+    @BeforeAll
+    static void initDB() throws Exception {
+        Flyway.configure()
+                .dataSource(DatabaseHelper.getConnection()
+                        .getMetaData().getURL(), "root", "")
+                .locations("classpath:db/migration")
+                .baselineOnMigrate(true)
+                .load()
+                .migrate();
     }
 
     @ParameterizedTest(name = "{index} ⇒ \"{0}\" doit retourner au moins {1} résultat(s)")
