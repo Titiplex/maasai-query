@@ -18,6 +18,7 @@ import java.util.Map;
  * et leur insertion dans la BDD
  */
 public abstract class ImportService {
+    // TODO Log system
     public static boolean importVocabulary(List<Vocabulary> vocabularyList) {
         System.out.println("--- Importing vocabulary ---");
         System.out.println("Total vocabulary count: " + vocabularyList.size());
@@ -30,7 +31,7 @@ public abstract class ImportService {
             LanguageDao languageDao = new LanguageDao();
             Map<Language, Integer> languageIntegerMap = new HashMap<>();
             for (Map.Entry<String, String> lang : LanguageConfig.getLangMap().entrySet()) {
-                Language language = new Language(lang.getKey(), lang.getValue());
+                Language language = new Language(lang.getValue(), lang.getKey());
                 languageIntegerMap.put(language, languageDao.insert(language));
             }
             System.out.println("Imported languages");
@@ -41,7 +42,7 @@ public abstract class ImportService {
             Map<PartOfSpeech, Integer> posIntegerMap = new HashMap<>();
             for (Map.Entry<String, String> pos : PosConfig.getPosMap().entrySet()) {
                 // TODO les abbréviations de pos -> noms complets
-                PartOfSpeech partOfSpeech = new PartOfSpeech(pos.getValue());
+                PartOfSpeech partOfSpeech = new PartOfSpeech(pos.getKey());
                 posIntegerMap.put(partOfSpeech, posDao.insert(partOfSpeech));
             }
             System.out.println("Inserted POS properties.");
@@ -61,7 +62,7 @@ public abstract class ImportService {
             DialectDao dialectDao = new DialectDao();
             Map<Dialect, Integer> dialectIntegerMap = new HashMap<>();
             for (Map.Entry<String, String> dialect : DialectConfig.getDialectMap().entrySet()) {
-                Dialect dial = new Dialect(dialect.getKey());
+                Dialect dial = new Dialect(dialect.getValue());
                 dialectIntegerMap.put(dial, dialectDao.insert(dial));
             }
             System.out.println("Imported dialects");
@@ -98,6 +99,8 @@ public abstract class ImportService {
                     meaningLanguageDao.insertLink(meaningId, languageIntegerMap.get(meaning.getLanguage()));
                     for (Dialect dialect : meaning.getDialects()) {
                         meaningDialectDao.insertLink(meaningId, dialectIntegerMap.get(dialect));
+                        if (dialectIntegerMap.get(dialect) == null)
+                            System.out.println("meaning : " + dialect.getDialectName());
                     }
                 }
 
@@ -107,6 +110,8 @@ public abstract class ImportService {
                     int exampleId = exampleIntegerMap.get(example);
                     exampleLanguageDao.insertLink(exampleId, languageIntegerMap.get(example.getGlossLanguage()));
                     exampleDialectDao.insertLink(exampleId, dialectIntegerMap.get(example.getDialect()));
+                    if (dialectIntegerMap.get(example.getDialect()) == null)
+                        System.out.println("ex : " + example.getDialect().getDialectName());
                 }
 
                 for (PartOfSpeech pos : vocabulary.getPartsOfSpeech()) {
@@ -131,6 +136,7 @@ public abstract class ImportService {
                 List<Dialect> dialects = vocabulary.getDialects();
                 for (Dialect dialect : dialects) {
                     vocabularyDialectDao.insertLink(vocabulary.getId(), dialectIntegerMap.get(dialect) != null ? dialectIntegerMap.get(dialect) : 1);
+                    if (dialectIntegerMap.get(dialect) == null) System.out.println("voc : " + dialect.getDialectName());
                 }
 
                 // System.out.println("Enregistrement pour : " + vocabulary.getEntry());

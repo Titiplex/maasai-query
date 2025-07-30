@@ -11,13 +11,13 @@ public class Dialect extends AbstractModel {
 
     public Dialect() {
         super();
-        this.dialectName = "Arusa";
+        this.dialectName = "arusa";
         addDialect(this);
     }
 
     public Dialect(String dialect) {
         super();
-        this.dialectName = dialect;
+        this.dialectName = dialect.toLowerCase();
         addDialect(this);
     }
 

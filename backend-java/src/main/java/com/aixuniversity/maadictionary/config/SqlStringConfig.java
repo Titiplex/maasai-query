@@ -22,7 +22,7 @@ public abstract class SqlStringConfig {
             placeholders.add("?");
         }
         insertionString += DaoConfig.getTableName(key) + " (" + String.join(", ", columnsNames) + ")"
-        + " values (" + String.join(", ", placeholders) + ")" ;
+                + " values (" + String.join(", ", placeholders) + ")";
 
         return insertionString;
     }
@@ -63,6 +63,7 @@ public abstract class SqlStringConfig {
         for (String col : columns) {
             String column = DaoConfig.getColumnName(key, col);
             updateString.append(column).append(" =? ");
+            if (columns.indexOf(column) < columns.size() - 1) updateString.append(", ");
         }
         updateString.append(" where id=").append(id);
 
