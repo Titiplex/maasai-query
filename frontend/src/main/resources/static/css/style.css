@@ -50,7 +50,7 @@ h1 {
     font-size: 1rem;
 }
 
-.search-box button, .builder-box button {
+.search-box button, .builder-box button, .navigation-button {
     padding: 0.75rem 1.25rem;
     background: var(--clr-primary);
     color: #fff;
@@ -58,6 +58,10 @@ h1 {
     border-radius: var(--radius);
     cursor: pointer;
     transition: background 0.2s ease;
+}
+
+.clean-link{
+    text-decoration: none;
 }
 
 .search-box button:hover, .builder-box button:hover {

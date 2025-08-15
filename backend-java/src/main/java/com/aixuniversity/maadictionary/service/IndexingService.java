@@ -1,8 +1,8 @@
 package com.aixuniversity.maadictionary.service;
 
+import com.aixuniversity.maadictionary.app.ImportStatus;
 import com.aixuniversity.maadictionary.config.AbbreviationConfig;
 import com.aixuniversity.maadictionary.config.IPAConfig;
-import com.aixuniversity.maadictionary.app.ImportStatus;
 import com.aixuniversity.maadictionary.dao.join.PhonemeCategoryDao;
 import com.aixuniversity.maadictionary.dao.join.VocabularyPhonemeCategoryDao;
 import com.aixuniversity.maadictionary.dao.join.VocabularyPhonemeDao;
@@ -13,7 +13,6 @@ import com.aixuniversity.maadictionary.model.Category;
 import com.aixuniversity.maadictionary.model.Phoneme;
 import com.aixuniversity.maadictionary.model.Syllable;
 import com.aixuniversity.maadictionary.model.Vocabulary;
-import com.aixuniversity.maadictionary.parser.extractors.SyllableExtractor;
 import com.aixuniversity.maadictionary.service.search.SyllablePattern;
 
 import java.sql.SQLException;
@@ -33,12 +32,16 @@ public abstract class IndexingService {
 
         System.out.println("Inserting IPA properties...");
         for (Map.Entry<String, String> ipa : IPAConfig.getIpaMap().entrySet()) {
-            pDao.insert(new Phoneme(ipa.getValue(), ipa.getKey()));
+            Phoneme propPhoneme = new Phoneme(ipa.getValue(), ipa.getKey());
+            propPhoneme.setId(pDao.insert(propPhoneme));
+            Phoneme.addPhoneme(propPhoneme);
         }
         System.out.println("IPA properties inserted.");
         System.out.println("Inserting category properties...");
         for (Map.Entry<String, String> cat : AbbreviationConfig.getAbbrMap().entrySet()) {
-            cDao.insert(new Category(cat.getValue(), cat.getKey()));
+            Category propcategory = new Category(cat.getValue(), cat.getKey());
+            propcategory.setId(cDao.insert(propcategory));
+            Category.addCategory(propcategory);
         }
         System.out.println("Category properties inserted.");
 
@@ -50,10 +53,11 @@ public abstract class IndexingService {
             done++;
             ImportStatus.ProgressBar.print(done, total);
             Vocabulary v = vDao.searchById(vid);
-            int existing = vpDao.getLinkedIds(vid).size();
-            if (existing == SyllableExtractor.tokenizeIPAWord(v.getIpa()).size()) {
-                continue;
-            }
+//            int existing = vpDao.getLinkedIds(vid).size();
+//            if (existing == SyllableExtractor.tokenizeIPAWord(v.getIpa()).size()) {
+//                System.out.println("Vocabulary " + v.getEntry() + " already indexed.");
+//                continue;
+//            }
 
             int pos = 0;
             for (Syllable s : v.getSyllables()) {
@@ -71,6 +75,7 @@ public abstract class IndexingService {
                 for (int i = 0; i < toks.size(); i++) {
                     String tok = toks.get(i);
                     Phoneme ph = Phoneme.getOrCreate(tok, pDao);
+                    if (ph.getFreq() == 0) ph.addFreq();
                     // System.out.println(ph);
 
                     int vpId = (int) vpDao.insertLink(v.getId(), ph.getId(), pos++, i, indexSyll);
@@ -79,6 +84,7 @@ public abstract class IndexingService {
                     List<String> catAbbrs = (i < pat.size()) ? pat.get(i) : Collections.emptyList();
                     for (String abbr : catAbbrs) {
                         Category cat = Category.getOrCreate(abbr, cDao);
+                        if (cat.getFreq() == 0) cat.addFreq();
                         // System.out.println(cat);
                         pcDao.insertLink(ph.getId(), cat.getId());
                         vpcDao.insertLink(vpId, cat.getId(), i, indexSyll);

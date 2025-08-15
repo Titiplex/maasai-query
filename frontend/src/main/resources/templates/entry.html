@@ -4,10 +4,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Maa Dictionary – Entry</title>
     <link rel="stylesheet" href="/css/style.css"/>
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
 </head>
 <body>
 <div class="page">
-    <a href="/">Home Page</a>
+    <div class="tabs">
+        <a href="/" class="navigation-button clean-link">&larr; Home Page</a>
+        <label class="hidden" for="orth">Orth.</label>
+        <select id="orth"></select>
+    </div>
     <h2 id="word"></h2>
     <p id="ipa"></p>
 
@@ -30,6 +35,8 @@
     // Essaye d'abord dans le chemin /entry/xxxx
     const pathMatch = location.pathname.match(/\/entry\/(\d+)/);
     let id = pathMatch ? pathMatch[1] : null;
+    const orthSel = document.getElementById('orth');
+    let data;
 
     // Retombe sur ?id=xxxx si on t'accède en statique
     if (!id) {
@@ -41,53 +48,108 @@
         throw new Error("No id");
     }
 
-    fetch(`/entry/${id}`)
+    fetch(`/api/vocab/${id}`)
         .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-        .then(fill)
+        .then(d => {
+            fill(d);
+            data = d;
+        })
         .catch((err) => {
             document.body.innerHTML = `<p>Error ${err}</p>`;
         });
 
-    function fill(data) {
-        document.getElementById("word").textContent = data.form;
+    orthSel.onchange = () => fill(data);
+
+    fetch('/api/ortho')
+        .then(r => r.json())
+        .then(arr => {
+            arr.forEach(o => {
+                if (o !== "ipa") {
+                    const opt = document.createElement('option');
+                    opt.value = opt.textContent = o;
+                    orthSel.appendChild(opt);
+                }
+            });
+        })
+        .catch(() => {                 // hard-coded fallback
+            ["payne"].forEach(o => {
+                const opt = document.createElement('option');
+                opt.value = opt.textContent = o;
+                orthSel.appendChild(opt);
+            });
+        });
+
+    async function fill(data) {
+        let form = data.form;
+        const orth = orthSel.value;
+
+        if (orth && orth !== "payne" && orth !== "ipa") {
+            try {
+                const res = await fetch(`/api/orth/convert?id=${data.id}&orth=${encodeURIComponent(orth)}&ipa=${encodeURIComponent(data.ipa)}`);
+                if (res.ok) form = await res.text();
+            } catch (_) { /* fallback = data.form */ }
+        }
+
+        document.getElementById("word").textContent = form;
         document.getElementById("ipa").textContent = "/" + data.ipa + "/";
 
         if (data.meanings && data.meanings.length) {
             const ul = document.getElementById("meanings");
-            data.meanings.forEach((m) => {
+            while (ul.lastElementChild) ul.removeChild(ul.lastElementChild);
+            for (const m of data.meanings) {
                 const li = document.createElement("li");
                 li.textContent = m.definition;
                 ul.appendChild(li);
-            });
+            }
             document.getElementById("meanings-sec").hidden = false;
         }
 
         if (data.examples && data.examples.length) {
             const ul = document.getElementById("examples");
-            data.examples.forEach((ex) => {
+            while (ul.lastElementChild) ul.removeChild(ul.lastElementChild);
+
+            for (const ex of data.examples) {
+                let example = ex.example;
+                if (orth && orth !== "payne" && orth !== "ipa") {
+                    try {
+                        const res = await fetch(`/api/orth/convert/txt?orth=${encodeURIComponent(orth)}&text=${encodeURIComponent(ex.example)}`);
+                        if (res.ok) example = await res.text();
+                    } catch (_) { /* fallback */ }
+                }
                 const li = document.createElement("li");
                 const p = document.createElement("p");
-                p.textContent = ex.example + "\r\n\"" + ex.gloss + "\"";
+                p.textContent = example + "\r\n\"" + ex.gloss + "\"";
                 p.className = "li-element";
                 li.append(p);
                 ul.appendChild(li);
-            });
+            }
             document.getElementById("examples-sec").hidden = false;
         }
 
         if (data.linkedVocabs && data.linkedVocabs.length) {
             const ul = document.getElementById("linked");
-            data.linkedVocabs.forEach((linked) => {
+            while (ul.lastElementChild) ul.removeChild(ul.lastElementChild);
+
+            for (const linked of data.linkedVocabs) {
+                let linkedForm = linked.entry;
+
+                if (orth && orth !== "payne" && orth !== "ipa") {
+                    try {
+                        const res = await fetch(`/api/orth/convert?id=${linked.id}&orth=${encodeURIComponent(orth)}&ipa=${encodeURIComponent(linked.ipa)}`);
+                        if (res.ok) linkedForm = await res.text();
+                    } catch (_) { /* fallback */ }
+                }
+
                 const li = document.createElement("li");
                 const p = document.createElement("p");
                 const a = document.createElement("a");
-                p.textContent = linked.entry;
+                p.textContent = linkedForm;
                 p.className = "li-element";
                 a.append(p);
                 a.href = "/entry/" + linked.id;
                 li.append(a);
                 ul.appendChild(li);
-            });
+            }
             document.getElementById("linked-sec").hidden = false;
         }
     }

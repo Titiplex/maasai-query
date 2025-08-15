@@ -13,10 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
@@ -29,7 +26,6 @@ import java.util.Objects;
  */
 public final class ImportStatus {
 
-    private static final Connection c = DatabaseHelper.getConnection();
     private static final String DEFAULT_SRC = "oregon-maa-dictionary";
 
     private ImportStatus() {/* util class */}
@@ -37,7 +33,7 @@ public final class ImportStatus {
     /**
      * True when the remote payload hash differs from the last stored one.
      */
-    public static boolean needsImport(String url) throws SQLException {
+    public static boolean needsImport(String url) {
         String newHash;
         try {
             newHash = computeSha256(new ByteArrayInputStream(payload(url)));
@@ -45,11 +41,15 @@ public final class ImportStatus {
             throw new RuntimeException(e);
         }
         String oldHash = null;
-        try (PreparedStatement ps = c.prepareStatement(
-                "SELECT payload_hash FROM ImportStatus WHERE source = ?")) {
+        try {
+            Connection c = DatabaseHelper.getConnection();
+            PreparedStatement ps = c.prepareStatement(
+                    "SELECT payload_hash FROM ImportStatus WHERE source = ?");
             ps.setString(1, DEFAULT_SRC);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) oldHash = rs.getString(1);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         return !Objects.equals(oldHash, newHash);
     }
@@ -57,25 +57,33 @@ public final class ImportStatus {
     /**
      * Records a successful import together with the payload hash.
      */
-    public static void recordImport(String url) throws SQLException {
+    public static void recordImport(String url) {
         String newHash;
         try {
             newHash = computeSha256(new ByteArrayInputStream(payload(url)));
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-        try (PreparedStatement ps = c.prepareStatement(
+        try {
+            PreparedStatement ps = getPreparedStatement();
+            ps.setString(1, DEFAULT_SRC);
+            ps.setString(2, newHash);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static PreparedStatement getPreparedStatement() throws SQLException {
+        Connection c = DatabaseHelper.getConnection();
+        return c.prepareStatement(
                 """
                         INSERT INTO ImportStatus(source, last_import_on, payload_hash)
                         VALUES(?, CURRENT_TIMESTAMP, ?)
                         ON DUPLICATE KEY UPDATE
                             last_import_on = CURRENT_TIMESTAMP,
                             payload_hash   = VALUES(payload_hash)
-                        """)) {
-            ps.setString(1, DEFAULT_SRC);
-            ps.setString(2, newHash);
-            ps.executeUpdate();
-        }
+                        """);
     }
 
     /* ---------------------------------------------------- *
@@ -87,19 +95,23 @@ public final class ImportStatus {
      * • never indexed          (last_indexed IS NULL)
      * • modified after index   (last_indexed < last_modified)
      */
-    public static List<Integer> unindexedVocabularyIds() throws SQLException {
+    public static List<Integer> unindexedVocabularyIds() {
         List<Integer> ids = new ArrayList<>();
-        try (PreparedStatement ps = c.prepareStatement(
-                """
-                        SELECT v.id
-                        FROM   Vocabulary v
-                        LEFT   JOIN VocabularyAudit a ON a.vocabulary_id = v.id
-                        WHERE  a.last_indexed IS NULL
-                           OR  a.last_indexed < a.last_modified
-                           OR  a.last_modified IS NULL          -- audit row missing
-                        """)) {
+        try {
+            Connection c = DatabaseHelper.getConnection();
+            PreparedStatement ps = c.prepareStatement(
+                    """
+                            SELECT v.id
+                            FROM   Vocabulary v
+                            LEFT   JOIN VocabularyAudit a ON a.vocabulary_id = v.id
+                            WHERE  a.last_indexed IS NULL
+                               OR  a.last_indexed < a.last_modified
+                               OR  a.last_modified IS NULL          -- audit row missing
+                            """);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) ids.add(rs.getInt(1));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         return ids;
     }
@@ -108,30 +120,38 @@ public final class ImportStatus {
      * Marks one vocabulary entry as indexed “now”.
      * If no audit row exists yet, it will be created.
      */
-    public static void markIndexed(int vocabId) throws SQLException {
-        try (PreparedStatement ps = c.prepareStatement(
-                """
-                        INSERT INTO VocabularyAudit(vocabulary_id, last_modified, last_indexed)
-                        VALUES(?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                        ON DUPLICATE KEY UPDATE
-                            last_indexed = CURRENT_TIMESTAMP
-                        """)) {
+    public static void markIndexed(int vocabId) {
+        try {
+            Connection c = DatabaseHelper.getConnection();
+            PreparedStatement ps = c.prepareStatement(
+                    """
+                            INSERT INTO VocabularyAudit(vocabulary_id, last_modified, last_indexed)
+                            VALUES(?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                            ON DUPLICATE KEY UPDATE
+                                last_indexed = CURRENT_TIMESTAMP
+                            """);
             ps.setInt(1, vocabId);
             ps.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
     /**
      * Call this right after inserting / updating a Vocabulary row.
      */
-    public static void markModified(int vocabId) throws SQLException {
-        try (PreparedStatement ps = c.prepareStatement("""
-                INSERT INTO VocabularyAudit(vocabulary_id, last_modified)
-                VALUES (?, CURRENT_TIMESTAMP)
-                ON DUPLICATE KEY UPDATE last_modified = CURRENT_TIMESTAMP
-                """)) {
+    public static void markModified(int vocabId) {
+        try {
+            Connection c = DatabaseHelper.getConnection();
+            PreparedStatement ps = c.prepareStatement("""
+                    INSERT INTO VocabularyAudit(vocabulary_id, last_modified)
+                    VALUES (?, CURRENT_TIMESTAMP)
+                    ON DUPLICATE KEY UPDATE last_modified = CURRENT_TIMESTAMP
+                    """);
             ps.setInt(1, vocabId);
             ps.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -195,6 +215,69 @@ public final class ImportStatus {
             System.out.print(sb);
 
             if (current >= total) System.out.println();   // final newline
+        }
+    }
+
+
+    private static Timestamp lastTraining() {
+        try {
+            Connection c = DatabaseHelper.getConnection();
+            PreparedStatement ps = c.prepareStatement("""
+                      SELECT last_trained
+                      FROM   ImportStatus
+                      WHERE  source = 'grapheme-prob'
+                    """);
+            ResultSet rs = ps.executeQuery();
+            return rs.next() ? rs.getTimestamp(1) : null;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean needsTraining() {
+
+        Timestamp lastTrain = lastTraining();
+
+        if (lastTrain == null) return true;
+
+        Timestamp lastVocMod;
+        try {
+            Connection c = DatabaseHelper.getConnection();
+            PreparedStatement ps = c.prepareStatement(
+                    "SELECT MAX(last_modified) FROM VocabularyAudit");
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            lastVocMod = rs.getTimestamp(1);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        if (lastVocMod != null && lastVocMod.after(lastTrain)) return true;
+
+        Timestamp lastVarAdd;
+        try {
+            Connection c = DatabaseHelper.getConnection();
+            PreparedStatement ps = c.prepareStatement(
+                    "SELECT MAX(created_at) FROM OrthographyVariant");
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            lastVarAdd = rs.getTimestamp(1);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return lastVarAdd != null && lastVarAdd.after(lastTrain);
+    }
+
+    public static void recordTraining() {
+        try {
+            Connection c = DatabaseHelper.getConnection();
+            PreparedStatement ps = c.prepareStatement("""
+                    INSERT INTO ImportStatus(source, last_trained)
+                    VALUES ('grapheme-prob', CURRENT_TIMESTAMP)
+                    ON DUPLICATE KEY UPDATE last_trained = CURRENT_TIMESTAMP
+                    """);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

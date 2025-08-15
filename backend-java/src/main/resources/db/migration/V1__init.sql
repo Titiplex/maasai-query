@@ -8,7 +8,8 @@ CREATE TABLE `ImportStatus`
 (
     `source`         VARCHAR(100) PRIMARY KEY,
     `last_import_on` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `payload_hash`   CHAR(64)  NULL -- SHA-256 of the raw file/response
+    `payload_hash`   CHAR(64)  NULL, -- SHA-256 of the raw file/response
+    `last_trained`   TIMESTAMP NULL
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -16,7 +17,8 @@ CREATE TABLE VocabularyAudit
 (
     `vocabulary_id` INT PRIMARY KEY,
     `last_modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `last_indexed`  TIMESTAMP NULL
+    `last_indexed`  TIMESTAMP NULL,
+    `last_trained`  TIMESTAMP NULL
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -286,5 +288,34 @@ CREATE TABLE `VocabularyPhonemeCategory`
             ON DELETE CASCADE,
     CONSTRAINT `fk_vpc_cat`
         FOREIGN KEY (`category_id`) REFERENCES `Category` (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE `OrthographyVariant`
+(
+    `id`              INT       NOT NULL AUTO_INCREMENT,
+    `vocabularyId`   INT       NOT NULL,
+    `form`            TEXT      NOT NULL,
+    `script`          VARCHAR(32)        DEFAULT 'payne',
+    `is_primary`      BOOLEAN            DEFAULT FALSE,
+    `ambiguity_score` REAL               DEFAULT 0.0,
+    `ipa_cache`       JSON               DEFAULT 'null',
+    `created_at`      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_orth_voc`
+        FOREIGN KEY (`vocabularyId`) REFERENCES `Vocabulary` (`id`)
+            ON DELETE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE `GraphemeMap`
+(
+    `id`          INT               NOT NULL AUTO_INCREMENT,
+    `orthography` VARCHAR(32)       NOT NULL,
+    `grapheme`    VARCHAR(8) UNIQUE NOT NULL,
+    `ipa_options` JSON              NOT NULL, -- ex. ["o","ɔ"]
+    `likelihood`  JSON              NOT NULL,
+    UNIQUE KEY `u_orth_grapheme` (`orthography`, `grapheme`),
+    PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;

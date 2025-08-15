@@ -23,10 +23,11 @@ public class SearchController {
     @GetMapping("/search")
     public PageDto<ScoredResultDto> search(
             @RequestParam String q,
+            @RequestParam(defaultValue = "payne") String orth,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size
     ) throws SQLException {
-        var all = searchService.search(q);
+        var all = searchService.search(orth + "::" + q);
         int from = Math.min(page * size, all.size());
         int to = Math.min(from + size, all.size());
 

@@ -66,23 +66,34 @@ public abstract class AbstractDao<T extends AbstractModel> implements DaoInterfa
     }
 
     @SuppressWarnings("SqlSourceToSinkFlow")
-    public Integer searchIdOfUniqueElement(Object element, String columnKey) throws SQLException {
-        String query = SqlStringConfig.getSelectionStringSpecificWhereSpecific(getEntityKey(), 0, DaoConfig.getColumns(getEntityKey()).indexOf(columnKey));
-        Connection conn = DatabaseHelper.getConnection();
-        PreparedStatement ps = conn.prepareStatement(query);
+    public Integer searchIdOfUniqueElement(Object element, String columnKey)
+            throws SQLException {
 
-        ps.setObject(1, element);
+        List<String> cols = DaoConfig.getColumns(getEntityKey());
+        int whereIdx = cols.indexOf(columnKey);
+        if (whereIdx < 0)
+            throw new IllegalArgumentException("unknown column: " + columnKey);
 
-        ResultSet rs = ps.executeQuery();
-        if (!rs.next()) {
-            return null;
+        String sql = SqlStringConfig.getSelectionStringSpecificWhereSpecific(
+                getEntityKey(), /*select*/ 0, /*where*/ whereIdx);
+
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            String colType = DaoConfig.getColumnType(getEntityKey(), columnKey);
+            bindValue(ps, 1, colType, element);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return null;
+                int id = rs.getInt(1);
+                if (rs.next())
+                    throw new IllegalStateException(
+                            "non-unique value «" + element + "» in " + columnKey);
+                return id;
+            }
         }
-//        if (rs.getFetchSize() != 1) {
-//            throw new IllegalArgumentException("Multiple or no ids for element " + element.toString() + " in column " + columnKey);
-//        }
-
-        return (rs.getInt(1));
     }
+
 
     @SuppressWarnings("SqlSourceToSinkFlow")
     @Override

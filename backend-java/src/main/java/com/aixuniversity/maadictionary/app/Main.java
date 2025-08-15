@@ -1,18 +1,13 @@
 package com.aixuniversity.maadictionary.app;
 
-import com.aixuniversity.maadictionary.dao.normal.VocabularyDao;
 import com.aixuniversity.maadictionary.model.Vocabulary;
 import com.aixuniversity.maadictionary.parser.HtmlParser;
 import com.aixuniversity.maadictionary.service.ImportService;
 import com.aixuniversity.maadictionary.service.IndexingService;
-import com.aixuniversity.maadictionary.service.SearchService;
-import com.aixuniversity.maadictionary.service.search.Searcher;
-import com.aixuniversity.maadictionary.service.search.SimpleSequentialSearcher;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.util.List;
 
 public class Main {
@@ -41,13 +36,19 @@ public class Main {
             String answer = System.console().readLine();
             if (answer.equalsIgnoreCase("y") && ImportStatus.needsImport(url)) {
                 System.out.println("\n\tImporting " + url);
-                if (ImportService.importVocabulary(vocab)) {
-                    System.out.println("Imported successfully !");
-                    ImportStatus.recordImport(url);
-                } else {
-                    System.out.println("Import failed !");
+                try {
+                    if (ImportService.importVocabulary(vocab)) {
+                        System.out.println("Imported successfully !");
+                        ImportStatus.recordImport(url);
+                    } else {
+                        System.out.println("Import failed !");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error while importing " + url);
+                    System.err.println(e.getMessage());
+                    return false;
                 }
-            } else if (answer.equalsIgnoreCase("n") && ImportStatus.needsImport(url)) {
+            } else if (answer.equalsIgnoreCase("n")) {
                 System.out.println("Skipping import of " + url);
             } else {
                 System.err.println("Invalid answer or couldn't determine if import is needed. Please answer y/n and try again.");
@@ -56,15 +57,21 @@ public class Main {
             System.out.println("Do you want to reindex the vocabulary ? (y/n) ");
             answer = System.console().readLine();
             if (answer.equalsIgnoreCase("y")) {
-                IndexingService.reindex();
+                try {
+                    IndexingService.reindex();
+                } catch (Exception e) {
+                    System.err.println("Error while indexing " + url);
+                    System.err.println(e.getMessage());
+                    return false;
+                }
             } else if (answer.equalsIgnoreCase("n")) {
                 System.out.println("Skipping reindexing of " + url);
             } else {
                 System.err.println("Invalid answer or couldn't determine if reindex is needed. Please answer y/n and try again.");
                 return false;
             }
-        } catch (SQLException e) {
-            System.err.println("Error while importing " + url);
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
             return false;
         }
         return true;

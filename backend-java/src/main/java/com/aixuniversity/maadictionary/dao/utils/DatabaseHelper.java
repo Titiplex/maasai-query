@@ -12,7 +12,7 @@ public abstract class DatabaseHelper {
     public static final String USER = System.getenv("USER");
     public static final String PASSWORD = System.getenv("PASSWORD");
     public static final String DATABASE = System.getenv("DATABASE");
-    public static Connection conn = null;
+    private static Connection conn = null;
 
     public static synchronized Connection getConnection() {
         try {

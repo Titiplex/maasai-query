@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mariadb://localhost:5432/maasai
-    username: dbuser
-    password: dbpass
+    url: jdbc:mariadb://localhost/maa
+    username: root
+    password:
   jpa:
     hibernate:
       ddl-auto: validate

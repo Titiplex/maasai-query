@@ -35,7 +35,7 @@ public class Phoneme extends AbstractModel {
         super();
         this.code = code;
         this.ipa = ipa;
-        this.freq = 1;
+        this.freq = 0;
         addPhoneme(this);
     }
 

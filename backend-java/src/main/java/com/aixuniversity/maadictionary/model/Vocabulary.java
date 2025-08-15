@@ -31,6 +31,12 @@ public class Vocabulary extends AbstractModel {
     private List<Example> examples;
     private List<Vocabulary> linkedVocabularies;
     private List<Dialect> dialects;
+    private List<OrthographyVariant> orthographies = new ArrayList<>();
+
+    public List<OrthographyVariant> getOrthographies() {
+        return orthographies;
+    }
+
     private int homonymIndex = 1;
 
     public Vocabulary() {
@@ -331,6 +337,14 @@ public class Vocabulary extends AbstractModel {
 
     public void setSpecifications(String specifications) {
         this.specifications = specifications;
+    }
+
+    public void addOrthographyVariant(OrthographyVariant orthographyVariant) {
+        if (this.orthographies == null) {
+            this.orthographies = new ArrayList<>();
+        }
+        if (this.orthographies.contains(orthographyVariant)) return;
+        this.orthographies.add(orthographyVariant);
     }
 }
 
